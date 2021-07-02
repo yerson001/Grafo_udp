@@ -29,7 +29,7 @@ Copie la base de datos
 ~~~
 $>> copiar mydata.db que esta en source a la carpeta build
 ~~~
-#Ejecucion Local
+# Ejecucion Local
 ## Servidor
 ~~~
 $Terminal1>> ./master
