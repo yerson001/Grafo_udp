@@ -2,7 +2,7 @@
 #include <sqlite3.h>
 using namespace std;
 char **query_client;
-
+string rpt_query;
 class SQlite
 {
 private:
@@ -12,20 +12,24 @@ public:
    char *error = 0;
    int res;
    string name_db;
-
+   string res_query;
    SQlite(string);
    void init();
    static int selectCb(void *data, int argc, char **argv, char **colNames)
    {
+      string res="";
       query_client = argv;
       for (int i = 0; i < argc; i++)
       {
          cout << "[" << colNames[i] << "] " << argv[i] << endl;
+         string gaa(argv[i]);
+         rpt_query+=gaa+"+";
+         //cout<<"GAA: "<<gaa<<endl;
       }
       cout << endl;
       return 0;
    }
-   void select_db(string table);
+   string select_db(string table);
    void insert_db(string table, string campos);
    void delete_element_db(string table, string campo, string value);
 
@@ -55,16 +59,17 @@ void SQlite::init()
 
 //   query
 
-void SQlite::select_db(string table)
+string SQlite::select_db(string table)
 {
    string SELECT = "SELECT * FROM " + table + ";";
    //query
-   res = sqlite3_exec(db, SELECT.c_str(), selectCb, 0, &error);
+   res = sqlite3_exec(db, SELECT.c_str(), selectCb,0, &error);
    if (res != SQLITE_OK)
    {
       fprintf(stderr, "query error%s\n", error);
       sqlite3_free(error);
    }
+   return rpt_query;
 }
 
 void SQlite::insert_db(string table, string campos)

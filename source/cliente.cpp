@@ -50,7 +50,8 @@ void writing(int sock) {
 int main(int argc, char *argv[])
 {
    int sock;
-   host = (struct hostent *)gethostbyname((char *)"34.152.23.49");
+   //host = (struct hostent *)gethostbyname((char *)"34.152.23.49");
+   host = (struct hostent *)gethostbyname((char *)"127.0.0.1");
    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
    {
       perror("socket");

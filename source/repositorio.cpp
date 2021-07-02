@@ -16,38 +16,49 @@
 #include <fstream>
 #include <thread>
 #include <vector>
+#include "SQlite.h"
+
 using namespace std;
 struct sockaddr_in server_addr;
 struct hostent *host;
 
+SQlite sql("mydata.db");
 
-void writing(int sock) {
-    int n,write_sise;char send_data[256];
+void writing(int sock)
+{
+    int n, write_sise;
+    char send_data[256];
     socklen_t addr_len;
     string structure;
-    cout<<"MSG: ";
-    cin>>structure;
-    n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
-    
-    while (true) {
-        n = recvfrom(sock, send_data,256, 0, (struct sockaddr *)&server_addr, &addr_len);
-        printf("msg server: %s\n",send_data);
+    cout << "MSG: ";
+    cin >> structure;
+    n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
+
+    while (true)
+    {
+        n = recvfrom(sock, send_data, 256, 0, (struct sockaddr *)&server_addr, &addr_len);
+        printf("msg server: %s\n", send_data);
+         
+        cout<<sql.select_db("nodos")<<endl;
+        string res = sql.select_db("nodos");
+        n = sendto(sock, res.c_str(), res.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
     }
 }
 
 int main(int argc, char *argv[])
 {
-   int sock;
-   host = (struct hostent *)gethostbyname((char *)"127.0.0.1");
-   if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-   {
-      perror("socket");
-      exit(1);
-   }
+    sql.init();
+    int sock;
+    host = (struct hostent *)gethostbyname((char *)"127.0.0.1");
+    if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+    {
+        perror("socket");
+        exit(1);
+    }
 
-   server_addr.sin_family = AF_INET;
-   server_addr.sin_port = htons(5000);
-   server_addr.sin_addr = *((struct in_addr *)host->h_addr);
-   bzero(&(server_addr.sin_zero), 8);
-   writing(sock);
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(5000);
+    server_addr.sin_addr = *((struct in_addr *)host->h_addr);
+    bzero(&(server_addr.sin_zero), 8);
+    writing(sock);
 }
