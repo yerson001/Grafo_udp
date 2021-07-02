@@ -14,27 +14,20 @@
 #include <thread>
 #include <vector>
 #include <sstream>
-#include <sqlite3.h>
+//#include <sqlite3.h>
 #include <map>
+
 using namespace std;
 
 struct sockaddr_in server_addr, client_addr;
 vector<struct sockaddr_in> my_connect;
-
-void add_connections()
-{
-     std::system("clear");
-    printf("[%s] [%s : %hd]\n","Master: " , inet_ntoa( server_addr.sin_addr), ntohs( server_addr.sin_port));
-    cout << "+--Connections--+" << endl;
-    my_connect.push_back(client_addr);
-    cout << "      size: " << my_connect.size() << endl;
-    for (int i = 0; i < my_connect.size(); i++)
-    {
-        printf("[   %i] [%s : %hd]\n", i, inet_ntoa(my_connect[i].sin_addr), ntohs(my_connect[i].sin_port));
-    }
-    cout << "+---------------+" << endl;
+vector<struct sockaddr_in> repositories;
+int string_int(string s){
+    stringstream geek(s);
+    int x = 0;
+    geek >> x;
+    return x;
 }
-
 void reading(int sock)
 {
     char recv_data[256];
@@ -45,37 +38,34 @@ void reading(int sock)
     {
         bzero(recv_data, 256);
         n = recvfrom(sock, recv_data, 256, 0, (struct sockaddr *)&client_addr, &addr_len);
-
-        if (n < 0)
-        {
+        if (n < 0){
             perror("ERROR reading from socket");
         }
-        else
-        {
-            add_connections();
+        if(recv_data[0]=='R'){
+            for(int i=0;i<repositories.size();i++){
+                if(repositories[i].sin_port!=client_addr.sin_port)
+                    repositories.push_back(client_addr);
+            }
+            if(repositories.size()==0)
+                repositories.push_back(client_addr);
+            cout<<"repositorio registrado "<<endl;
+            printf("[%i] [%s : %hd]\n",repositories.size(), inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+            
         }
-
-        //char action = recv_data[0];
-        printf("menssage action: %s\n", recv_data);
-
-        string structure = "......succefull connect!......";
-        n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr));
-/*
-        switch (action)
-        {
-        case 'r':
-        {
-            string res = "";
-            n = sendto(sock, res.c_str(), res.size(), 0, (struct sockaddr *)&my_connect[0], sizeof(struct sockaddr));
+        if(recv_data[0]=='c'){
+            string structure(recv_data,256);
+            cout<<"recibido: "<<structure<<endl;
+            int size_nodo= string_int(structure.substr(1,3));structure=structure.substr(4,256);
+            int number_attributes=string_int(structure.substr(0,2));structure=structure.substr(2,structure.size());
+            int number_relations= string_int(structure.substr(0,3));structure=structure.substr(3,structure.size());
+            string name_node = structure.substr(0,size_nodo);structure=structure.substr(size_nodo,structure.size());
+            
+            int res=name_node[0]%(repositories.size());
+            cout<<"ressss "<<res<<endl;
+            cout<<"size "<<repositories.size()<<endl;
+            n = sendto(sock, recv_data, 256, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
         }
-        }
-        */
-        string msg_c(recv_data);
-        cout<<"msg_c:"<<msg_c<<endl;
-        n = sendto(sock, msg_c.c_str(), msg_c.size(), 0, (struct sockaddr *)&my_connect[0], sizeof(struct sockaddr));
-    
-     
-       // n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr));
+        
     }
 }
 
@@ -91,7 +81,7 @@ int main()
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(5000);
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    printf("[%s] [%s : %hd]\n","Master: " , inet_ntoa( server_addr.sin_addr), ntohs( server_addr.sin_port));
+    
     bzero(&(server_addr.sin_zero), 8);
 
     if (bind(sock, (struct sockaddr *)&server_addr, sizeof(struct sockaddr)) == -1)
@@ -99,7 +89,8 @@ int main()
         perror("Bind");
         exit(1);
     }
-    //printf("\nUDPServer Waiting for client on port 5000 \n");
+    
+    printf("[%s] [%s : %hd]\n","Master: " , inet_ntoa( server_addr.sin_addr), ntohs( server_addr.sin_port));
     reading(sock);
     return 0;
 }

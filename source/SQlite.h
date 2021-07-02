@@ -61,6 +61,7 @@ void SQlite::init()
 
 string SQlite::select_db(string table)
 {
+   cout<<"+-----------Select------------+"<<endl;
    string SELECT = "SELECT * FROM " + table + ";";
    //query
    res = sqlite3_exec(db, SELECT.c_str(), selectCb,0, &error);
@@ -69,6 +70,7 @@ string SQlite::select_db(string table)
       fprintf(stderr, "query error%s\n", error);
       sqlite3_free(error);
    }
+   cout<<"+----------------------------+"<<endl;
    return rpt_query;
 }
 
@@ -77,6 +79,11 @@ void SQlite::insert_db(string table, string campos)
    string INSERT = "INSERT INTO " + table +
                    " VALUES (" + campos + ");";
    //query
+   
+   //insert INTO nodos VALUES('C');
+   //INSERT INTO atributos VALUES ('B','edad','yhon');
+   //INSERT INTO relaciones VALUES ('B','A');
+
    res = sqlite3_exec(db, INSERT.c_str(), NULL, 0, &error);
    if (res != SQLITE_OK)
    {
