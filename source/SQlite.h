@@ -21,7 +21,7 @@ public:
       query_client = argv;
       for (int i = 0; i < argc; i++)
       {
-         cout << "[" << colNames[i] << "] " << argv[i] << endl;
+         //cout << "[" << colNames[i] << "] " << argv[i] << endl;
          string gaa(argv[i]);
          rpt_query+=gaa+"+";
          //cout<<"GAA: "<<gaa<<endl;
@@ -61,7 +61,7 @@ void SQlite::init()
 
 string SQlite::select_db(string table)
 {
-   cout<<"+-----------Select------------+"<<endl;
+   //cout<<"+-----------Select------------+"<<endl;
    string SELECT = "SELECT * FROM " + table + ";";
    //query
    res = sqlite3_exec(db, SELECT.c_str(), selectCb,0, &error);
@@ -70,7 +70,7 @@ string SQlite::select_db(string table)
       fprintf(stderr, "query error%s\n", error);
       sqlite3_free(error);
    }
-   cout<<"+----------------------------+"<<endl;
+   //cout<<"+----------------------------+"<<endl;
    return rpt_query;
 }
 

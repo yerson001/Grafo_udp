@@ -24,7 +24,8 @@ struct hostent *host;
 vector<string> nombre_atributos;
 vector<string> valor_atributos;
 vector<string> valor_relaciones;
- SQlite db("mydata.db");
+SQlite db("mydata.db");
+
 
 int string_int(string s){
     stringstream geek(s);
@@ -84,9 +85,6 @@ void read(string& structure){
     int number_attributes=string_int(structure.substr(0,2));structure=structure.substr(2,structure.size());
     int number_relations= string_int(structure.substr(0,3));structure=structure.substr(3,structure.size());
     string name_node = structure.substr(0,size_nodo);structure=structure.substr(size_nodo,structure.size());
-    //cout<<"SIZE_nodo"<<size_nodo<<endl;
-    //cout<<"number_atribute"<<number_attributes<<endl;
-    //cout<<"number_relacions"<<number_relations<<endl;
     string campos="";
 
     for(int i=0;i<number_attributes;i++){
@@ -112,13 +110,6 @@ void read(string& structure){
         campos+="'"+n_node+"',";
     }
     relaciones = campos;
-
-    
-    //cout<<"nombre: "<<nombre_nodo<<endl;
-    //cout<<"nombre_atributos: "<<name_atributos<<endl;
-    //cout<<"atributos_valor: "<<atributos<<endl; 
-    //cout<<"relaciones: "<<relaciones<<endl;
-    //cout<<"-----------------------------------"<<endl;
     get_values(nombre_atributos,name_atributos,number_attributes);
     get_values(valor_atributos,atributos,number_attributes);
     get_values(valor_relaciones,relaciones,number_relations);
@@ -136,18 +127,35 @@ void read(string& structure){
 void writing(int sock) {
     int n,write_sise;char send_data[256];
     socklen_t addr_len;
-    string structure;
-    cout<<"MSG: ";
-    cin>>structure;
+    string structure="R";
+    //cout<<"MSG: ";
+    //cin>>structure;
     n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
     while (true) {
         n = recvfrom(sock, send_data,256, 0, (struct sockaddr *)&server_addr, &addr_len);
         string s(send_data,256);
+        printf("msg server-> repo: %s\n",send_data);
         if(n<0){
             cout<<"error rec"<<endl;
         }
-        read(s);
-        printf("msg server-> repo: %s\n",send_data);
+        if (send_data[0] == 'c')
+        {
+            read(s);
+        }
+        if (send_data[0] == 'r')
+        {
+            db.init();
+            s.erase(0,1);
+            string respuesta = db.select_db(s);
+            cout<<"SS:"<<s<<endl;
+            cout<<"SELECT: "<<respuesta<<endl;
+            respuesta = "d"+respuesta;
+             
+            if(respuesta.size()!=0){
+                 n = sendto(sock,respuesta.c_str(), respuesta.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
+            }
+        }
+        
  
         //n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
  
