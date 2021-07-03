@@ -11,7 +11,7 @@ include_directories($(CMAKE_CURRENT_SOURCE_DIR)/source)
 file(GLOB SLAVE_SOURCE_FILES
   "source/SQlite/*.h"
 )
-
+find_package (Threads)
 add_executable(client source/cliente.cpp)
 add_executable(master source/master.cpp)
 add_executable(repositorio source/repositorio.cpp ${SLAVE_SOURCE_FILES})
@@ -24,3 +24,6 @@ if (SQLITE3_FOUND)
 endif (SQLITE3_FOUND)
 
 target_link_libraries(main sqlite3)
+target_link_libraries (client ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (master ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries (repositorio ${CMAKE_THREAD_LIBS_INIT})
