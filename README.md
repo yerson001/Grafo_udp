@@ -29,18 +29,3 @@ Copie la base de datos
 ~~~
 $>> copiar mydata.db que esta en source a la carpeta build
 ~~~
-# Ejecucion Local
-## Servidor
-~~~
-$Terminal1>> ./master
-~~~
-## Repositorio  en MSG: R
-~~~
-$Terminal2>> ./repositorio  
-~~~
-## Cliente
-~~~
-$>> ./client
-~~~
-
-

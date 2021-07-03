@@ -132,6 +132,7 @@ void writing(int sock) {
     //cin>>structure;
     n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
     while (true) {
+        //printf("msg server-----repo");
         n = recvfrom(sock, send_data,256, 0, (struct sockaddr *)&server_addr, &addr_len);
         string s(send_data,256);
         printf("msg server-> repo: %s\n",send_data);

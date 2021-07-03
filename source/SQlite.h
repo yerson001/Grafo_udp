@@ -70,6 +70,7 @@ string SQlite::select_db(string table)
       fprintf(stderr, "query error%s\n", error);
       sqlite3_free(error);
    }
+   system("clear");
    //cout<<"+----------------------------+"<<endl;
    return rpt_query;
 }

@@ -86,7 +86,7 @@ void reading(int sock)
             cout << "size " << repositories.size() << endl;
             n = sendto(sock, recv_data, 256, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
         }
-         if (recv_data[0] == 'd')
+        if (recv_data[0] == 'd')
         {
             string structure(recv_data, 256);
             cout << "recibido->repositorio: " << structure << endl;
@@ -117,6 +117,12 @@ int main()
     }
 
     printf("[%s] [%s : %hd]\n", "Master: ", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
-    reading(sock);
+    //reading(sock);
+    thread(reading, sock).detach();
+    for (;;)
+    {
+
+        
+    }
     return 0;
 }

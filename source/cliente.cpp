@@ -37,21 +37,21 @@ void print_menu()
     cout << "  - r: Read\n";
 }
 
-bool conn=0;
+
 
 void reading(int sock)
 {
     int n, write_sise;
     char recv_data[256];
     socklen_t addr_len;
-    while (conn)
+   
+    while (1)
     {
         n = recvfrom(sock, recv_data, 256, 0, (struct sockaddr *)&server_addr, &addr_len);
         if (recv_data[0] == 'd')
         {
             string structure(recv_data, 256);
             cout << "recibido->repositoio->master->client: " << structure << endl;
-            conn=0;
         }
     }
 }
@@ -64,7 +64,7 @@ void writing(int sock)
     {
         print_menu();
         char action;
-        cout << endl;
+        cout <<"action: ";
         cin >> action;
         cin.ignore();
         string structure;
@@ -114,7 +114,6 @@ void writing(int sock)
         }
         case 'r':
         {
-            conn=1;
             cout << "Enter the name of the table \n";
             string name; //3 bits
             cout << "name: ";
@@ -146,9 +145,10 @@ int main(int argc, char *argv[])
     server_addr.sin_addr = *((struct in_addr *)host->h_addr);
     bzero(&(server_addr.sin_zero), 8);
     //writing(sock);
-    thread(writing, sock).detach();
-    thread(reading, sock).detach();
+    thread (writing, sock).detach();
+    thread (reading, sock).detach();
     while (1)
     {
+
     }
 }
