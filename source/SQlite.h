@@ -23,10 +23,11 @@ public:
       {
          //cout << "[" << colNames[i] << "] " << argv[i] << endl;
          string gaa(argv[i]);
-         rpt_query+=gaa+"+";
+         rpt_query+=gaa+"|";
          //cout<<"GAA: "<<gaa<<endl;
       }
       cout << endl;
+      
       return 0;
    }
    string select_db(string table);
@@ -61,6 +62,7 @@ void SQlite::init()
 
 string SQlite::select_db(string table)
 {
+    rpt_query.clear();
    //cout<<"+-----------Select------------+"<<endl;
    string SELECT = "SELECT * FROM " + table + ";";
    //query
@@ -70,7 +72,7 @@ string SQlite::select_db(string table)
       fprintf(stderr, "query error%s\n", error);
       sqlite3_free(error);
    }
-   system("clear");
+   //system("clear");
    //cout<<"+----------------------------+"<<endl;
    return rpt_query;
 }

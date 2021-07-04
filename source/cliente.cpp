@@ -37,28 +37,48 @@ void print_menu()
     cout << "  - r: Read\n";
 }
 
-
+string get_values(string data)
+{
+    string str;
+    for (int i = 0; i < data.size(); i++)
+    {
+        int found = data.find("|");
+        //cout<<found<<endl;
+        std::string str2 = data.substr(0, found);
+        cout << str2 << endl;
+        //arr.push_back(str2);
+        data.erase(0, found + 1);
+        str += str2;
+    }
+    return str;
+}
 
 void reading(int sock)
 {
     int n, write_sise;
-    char recv_data[256];
+    char recv_data[1000];
     socklen_t addr_len;
    
     while (1)
     {
-        n = recvfrom(sock, recv_data, 256, 0, (struct sockaddr *)&server_addr, &addr_len);
+        n = recvfrom(sock, recv_data, 1000, 0, (struct sockaddr *)&server_addr, &addr_len);
         if (recv_data[0] == 'd')
         {
-            string structure(recv_data, 256);
-            cout << "recibido->repositoio->master->client: " << structure << endl;
+            string structure(recv_data, 1000);
+            structure.erase(0,1);
+            //--------------------formato-------------------
+            cout << "recibido->repositoio->master->client: " <<structure<< endl;
+            //get_values(structure);
+            structure.clear();
         }
     }
 }
+
+
 void writing(int sock)
 {
     int n, write_sise;
-    char send_data[256];
+    char send_data[1000];
     socklen_t addr_len;
     while (true)
     {
@@ -106,19 +126,26 @@ void writing(int sock)
             }
             structure =
                 string(1, action) + int_to_string(name_node.size(), 3) + int_to_string(number_attributes, 2) +
-                int_to_string(number_relations, 3) + name_node + attributes_structure + relations_structure;
+                int_to_string(number_relations, 3) + name_node + attributes_structure + relations_structure+"$";
             cout << "send to server: " << structure << endl;
+            string str;
+            str.assign(1000-structure.size()-1,'0');
+            structure+=str;
+
             n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
-            //n=recvfrom(sock, send_data,256, 0, (struct sockaddr *)&server_addr, &addr_len);
+            //n=recvfrom(sock, send_data,1000, 0, (struct sockaddr *)&server_addr, &addr_len);
             break;
         }
         case 'r':
         {
+            string str;
             cout << "Enter the name of the table \n";
             string name; //3 bits
             cout << "name: ";
             cin >> name;
-            name = "r" + name;
+            name = "r" + name+"$";
+            str.assign(1000-name.size()-1,'0');
+            name +=str;
             n = sendto(sock, name.c_str(), name.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
             break;
         }
@@ -134,6 +161,7 @@ int main(int argc, char *argv[])
 {
     int sock;
     host = (struct hostent *)gethostbyname((char *)"127.0.0.1");
+    //host = (struct hostent *)gethostbyname((char *)"34.152.23.49");
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
     {
         perror("socket");
