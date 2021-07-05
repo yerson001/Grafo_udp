@@ -25,7 +25,6 @@ vector<string> nombre_atributos;
 vector<string> valor_atributos;
 vector<string> valor_relaciones;
 SQlite db("mydata.db");
-
 int string_int(string s)
 {
     stringstream geek(s);
@@ -181,37 +180,41 @@ void writing(int sock)
 
         string id_client(send_data,1);
         string s(send_data, 1000);
-         cout<<"ID_CLIENTE: "<<id_client<<endl;
-         //eliminar id_cliente
-        //s.erase(0,1);
+        cout<<"server-->client[completo]: "<<s<<endl;
+        cout<<"ID_CLIENTE: "<<id_client<<endl;
+         //eliminar id_cliente pa el identificador
+        s.erase(0,1);
+        cout<<"server-->client[elinando]: "<<s<<endl;
+
 
         //eliminamos el dolar
         s = cortar(s);
 
-        cout<<"server-->client: "<<s<<endl;
+        cout<<"server-->client[procesado]: "<<s<<endl;
         //elimanos contador
         if (n < 0)
         {
             cout << "connect" << endl;
         }
-        if (send_data[0] == 'c')
+        if (s[0] == 'c')
         {
             read(s);
         }
-        if (send_data[0] == 'r')
+        if (s[0] == 'r')
         {
             db.init();
             s.erase(0,1);
             string respuesta = db.select_db(s);
             //cout << "SS:" << s << endl;
             cout << "SELECT: " << respuesta << endl;
-            respuesta = "d" + respuesta;
+            respuesta = "d"+id_client+ respuesta;
 
             if (respuesta.size() != 0)
             {
                 n = sendto(sock, respuesta.c_str(), respuesta.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
             }
             respuesta.clear();
+            id_client.clear();
         }
 
         //n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
