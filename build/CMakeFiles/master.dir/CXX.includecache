@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/mnt/d/XXX/Grafo_udp/source/master.cpp
+sys/types.h
+-
+sys/socket.h
+-
+netinet/in.h
+-
+arpa/inet.h
+-
+stdio.h
+-
+unistd.h
+-
+errno.h
+-
+string.h
+-
+stdlib.h
+-
+iostream
+-
+algorithm
+-
+chrono
+-
+fstream
+-
+thread
+-
+vector
+-
+sstream
+-
+map
+-
+

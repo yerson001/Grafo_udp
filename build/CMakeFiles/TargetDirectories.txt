@@ -1,0 +1,6 @@
+/mnt/d/XXX/Grafo_udp/build/CMakeFiles/rebuild_cache.dir
+/mnt/d/XXX/Grafo_udp/build/CMakeFiles/edit_cache.dir
+/mnt/d/XXX/Grafo_udp/build/CMakeFiles/main.dir
+/mnt/d/XXX/Grafo_udp/build/CMakeFiles/repositorio.dir
+/mnt/d/XXX/Grafo_udp/build/CMakeFiles/master.dir
+/mnt/d/XXX/Grafo_udp/build/CMakeFiles/client.dir
