@@ -178,11 +178,12 @@ void writing(int sock)
         //printf("msg server-----repo");
         n = recvfrom(sock, send_data, 1000, 0, (struct sockaddr *)&server_addr, &addr_len);
 
-        string id_client(send_data,1);
+        // Store the id_client
+        string id_client(send_data, 1);
         string s(send_data, 1000);
         cout<<"server-->client[completo]: "<<s<<endl;
         cout<<"ID_CLIENTE: "<<id_client<<endl;
-         //eliminar id_cliente pa el identificador
+        //eliminar id_cliente pa el identificador
         s.erase(0,1);
         cout<<"server-->client[elinando]: "<<s<<endl;
 
