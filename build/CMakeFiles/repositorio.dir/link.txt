@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/repositorio.dir/source/repositorio.cpp.o  -o repositorio  -lsqlite3 -lpthread 
