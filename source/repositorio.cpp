@@ -25,6 +25,9 @@ vector<string> nombre_atributos;
 vector<string> valor_atributos;
 vector<string> valor_relaciones;
 SQlite db("mydata.db");
+
+int BUFFER = 100;
+
 int string_int(string s)
 {
     stringstream geek(s);
@@ -98,7 +101,7 @@ void read(string &structure)
     string name_atributos("");
 
     int size_nodo = string_int(structure.substr(1, 3));
-    structure = structure.substr(4, 1000);
+    structure = structure.substr(4, BUFFER);
     int number_attributes = string_int(structure.substr(0, 2));
     structure = structure.substr(2, structure.size());
     int number_relations = string_int(structure.substr(0, 3));
@@ -167,7 +170,7 @@ void writing(int sock)
 {
     int n, write_sise;
      
-    char send_data[1000];
+    char send_data[BUFFER];
     socklen_t addr_len;
     string structure = "R";
     //cout<<"MSG: ";
@@ -176,11 +179,11 @@ void writing(int sock)
     while (true)
     {
         //printf("msg server-----repo");
-        n = recvfrom(sock, send_data, 1000, 0, (struct sockaddr *)&server_addr, &addr_len);
+        n = recvfrom(sock, send_data, BUFFER, 0, (struct sockaddr *)&server_addr, &addr_len);
 
         // Store the id_client
         string id_client(send_data, 1);
-        string s(send_data, 1000);
+        string s(send_data, BUFFER);
         cout<<"server-->client[completo]: "<<s<<endl;
         cout<<"ID_CLIENTE: "<<id_client<<endl;
         //eliminar id_cliente pa el identificador
@@ -220,7 +223,7 @@ void writing(int sock)
 
         //n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
 
-        bzero(send_data, 1000);
+        bzero(send_data, BUFFER);
     }
 }
 
