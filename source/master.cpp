@@ -65,15 +65,15 @@ int string_int(string s)
     geek >> x;
     return x;
 }
-
+// fucnion para eliminar el indice del cliente 
+// para saber que cliente es y no alterar la cadena
+// d|cliente01|resconsulta -> d|resconsulta --> sola del [0..9]
 string no_id_client(string &name, int &client)
 {
     string primera = name.substr(0, 1);
     string segunda = name.substr(2, name.size());
-    int d = name.find("|");
-    name.erase(0, 1);
-    name.erase(d - 1, name.size());
-    client = stoi(name);
+    //cout<<primera<<"   "<<segunda<<"  "<<name.substr(1,1)<<endl;
+    client = stoi(name.substr(1,1));
     return primera + segunda;
 }
 
@@ -81,6 +81,12 @@ string no_id_client(string &name, int &client)
 int hashFunction(int x, int SIZE)
 {
     return (x % SIZE);
+}
+string get_value(string name){
+    int d = name.find("*");
+    name.erase(d,name.size());
+    name.erase(0,1);
+    return name;
 }
 
 void reading(int sock)
@@ -152,13 +158,21 @@ void reading(int sock)
         {
             // 'id_client' is the posicion of the client address in 'clientsAddr'
             id_client = storeClientAddress();
+             
 
             string structure(recv_data, BUFFER);
+            //eliminar primer caracter 'r'
+            //structure.erase(0,1);
+            
             cout << "recibido->client: " << structure << endl;
 
-            //int res = structure[0] % (repositories.size());
-            int res = hashFunction(structure[0], repositories.size());
-            cout << "size " << repositories.size() << endl;
+            //int res = structure[0] % (repositories.size());}
+            //para usar la funcion hash necesitamos el valor para saber
+            //enque repositorioesta  
+            string nodo_ = get_value(structure);
+            int res = hashFunction(string_int(nodo_), repositories.size());
+               cout << "repositorio: " << res << endl;
+            cout << "Numero de repositorios: " << repositories.size() << endl;
 
             structure = id_client + structure;
             n = sendto(sock, structure.c_str(), BUFFER, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
@@ -169,8 +183,11 @@ void reading(int sock)
         {
             int clientIndex;
             string structure(recv_data, BUFFER);
-            cout << "recibido->repositorio: " << structure << endl;
+            cout << "RECIBIDO (R->M): " << structure << endl;
+           
             structure = no_id_client(structure, clientIndex);
+            cout << "CLIENT->INDEX: "<<clientIndex<<endl;
+
             n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&clientsAddr[clientIndex], sizeof(struct sockaddr));
             //n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr));
             id_client.clear();

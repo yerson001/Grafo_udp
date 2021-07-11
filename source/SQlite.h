@@ -17,22 +17,32 @@ public:
    void init();
    static int selectCb(void *data, int argc, char **argv, char **colNames)
    {
-      string res="";
+      string res = "";
       query_client = argv;
       for (int i = 0; i < argc; i++)
       {
          //cout << "[" << colNames[i] << "] " << argv[i] << endl;
          string gaa(argv[i]);
-         rpt_query+=gaa+"|";
+         rpt_query += gaa + "|";
          //cout<<"GAA: "<<gaa<<endl;
       }
       cout << endl;
-      
+
       return 0;
    }
+
+   static int callback_count(void *count, int argc, char **argv, char **azColName)
+   {
+      int *c = (int*)count;
+      *c = atoi(argv[0]);
+      return 0;
+   }
+
    string select_db(string table);
+   string select_dep(string table, string value, int dep);
    void insert_db(string table, string campos);
    void delete_element_db(string table, string campo, string value);
+   int count_db(string table, string value);
 
    ~SQlite();
 };
@@ -62,11 +72,11 @@ void SQlite::init()
 
 string SQlite::select_db(string table)
 {
-    rpt_query.clear();
+   rpt_query.clear();
    //cout<<"+-----------Select------------+"<<endl;
    string SELECT = "SELECT * FROM " + table + ";";
    //query
-   res = sqlite3_exec(db, SELECT.c_str(), selectCb,0, &error);
+   res = sqlite3_exec(db, SELECT.c_str(), selectCb, 0, &error);
    if (res != SQLITE_OK)
    {
       fprintf(stderr, "query error%s\n", error);
@@ -77,16 +87,23 @@ string SQlite::select_db(string table)
    return rpt_query;
 }
 
+string SQlite::select_dep(string table, string value, int dep = 0)
+{
+   rpt_query.clear();
+   string SELECT = "SELECT * FROM " + table + " WHERE nodo_inicial = " + value + ";";
+   res = sqlite3_exec(db, SELECT.c_str(), selectCb, 0, &error);
+   if (res != SQLITE_OK)
+   {
+      fprintf(stderr, "query error%s\n", error);
+      sqlite3_free(error);
+   }
+   return rpt_query;
+}
+
 void SQlite::insert_db(string table, string campos)
 {
    string INSERT = "INSERT INTO " + table +
                    " VALUES (" + campos + ");";
-   //query
-   
-   //insert INTO nodos VALUES('C');
-   //INSERT INTO atributos VALUES ('B','edad','yhon');
-   //INSERT INTO relaciones VALUES ('B','A');
-
    res = sqlite3_exec(db, INSERT.c_str(), NULL, 0, &error);
    if (res != SQLITE_OK)
    {
@@ -107,4 +124,16 @@ void SQlite::delete_element_db(string table, string campo, string value)
       fprintf(stderr, "query error%s\n", error);
       sqlite3_free(error);
    }
+}
+
+int SQlite::count_db(string table, string value)
+{
+   string SELECT = "SELECT * FROM " + table + " WHERE nodo_inicial = " + value + ";";
+   res = sqlite3_exec(db, SELECT.c_str(),callback_count, 0, &error);
+   if (res != SQLITE_OK)
+   {
+      fprintf(stderr, "query error%s\n", error);
+      sqlite3_free(error);
+   }
+   return res;
 }

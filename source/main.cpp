@@ -1,6 +1,5 @@
-
-#include<iostream>
-#include<vector>
+#include <iostream>
+#include <vector>
 #include <sqlite3.h>
 #include "SQlite.h"
 #include <map>
@@ -23,20 +22,46 @@
 #include <thread>
 #include <vector>
 #include <sstream>
+#include <algorithm>
+
 using namespace std;
-SQlite sql("mydata.db");
+
 vector<string> nombre_atributo;
 
-
-string no_id_client(string &name,int &client){
-    string primera = name.substr(0,1);
-    string segunda=name.substr(2,name.size());
-    int d = name.find("|");
-    name.erase(0,1);
-    name.erase(d-1,name.size());
-    client = stoi(name);
-    return primera+segunda;
+string no_id_client(string &name, int &client)
+{
+    string primera = name.substr(0, 1);
+    string segunda = name.substr(2, name.size());
+    //cout<<primera<<"   "<<segunda<<"  "<<name.substr(1,1)<<endl;
+    client = stoi(name.substr(1,1));
+    return primera + segunda;
 }
+
+string get_value(string &name)
+{
+    int d = name.find("*");
+    name.erase(d, name.size());
+    name.erase(0, 1);
+    return name;
+}
+int string_int(string s)
+{
+    stringstream geek(s);
+    int x = 0;
+    geek >> x;
+    return x;
+}
+int get_value_dep(string &name)
+{
+    string to_dep = name;
+    int d = name.find("*");
+    int dep = 0;
+    name.erase(d, name.size());
+    dep = string_int(to_dep.erase(0, d + 1));
+    //cout<<"---> "<<dep<<endl;
+    return dep;
+}
+
 string int_to_string(int number, int digits)
 {
     string ans = "";
@@ -48,17 +73,74 @@ string int_to_string(int number, int digits)
     reverse(ans.begin(), ans.end());
     return string(digits - ans.size(), '0') + ans;
 }
+//funcion para contar en numero de colunnas de una consulta sqlite
+// equivalente a COUNT(*)
+int num_colum(string s)
+{
+    return (count(s.begin(), s.end(), '|')) / 2;
+}
 
-int main(){
+//funcion para sacar las relacioens de este nodo y guardarlos en un vector
+vector<string> get_value_dep(string query, string value)
+{
+    vector<string> niveles;
+    //cout<<"num_ieracion: "<<num_colum(query)<<endl;
+    int it = num_colum(query);
+    it = it * 2;
+    for (int i = 0; i < it; i++)
+    {
+        int d = query.find("|");
+        //cout << "str: " << query.substr(0, d) << endl;
+        if (value == query.substr(0, d))
+        {
+            query.erase(0, d + 1);
+            //cout<<"quwr"<<query<<endl;
+        }
+        else
+        {
+            niveles.push_back(query.substr(0, d));
+            query.erase(0, d + 1);
+        }
+    }
+    return niveles;
+}
+void start(string name)
+{
+    SQlite sql(name);
     sql.init();
-    cout<<"-----"<<endl;
-    //cout<<sql.select_db("nodos")<<endl;
-    string name = "d5|A|B|C";
-    int c;
-    cout<<no_id_client(name,c)<<"----"<<c+2<<endl;
-    int cc = 4;
-    cout<<int_to_string(cc,2)<<endl;
+    string todos_relaciones = sql.select_dep("relaciones", "66");
+    cout << "query: " << todos_relaciones << endl;
+    cout << "columnas: " << num_colum(todos_relaciones) << endl;
 
+
+    vector<string> los_niveles = get_value_dep(todos_relaciones, "66");
+    for (int i = 0; i < los_niveles.size(); i++)
+    {
+        cout << "into niveles: " << los_niveles[i] << endl;
+    }
+}
+
+int main()
+{
+    start("repo0.db");
+
+    string test =  "d066|12|66|77|66|88|";
+    int id;
+    cout<<no_id_client(test,id)<<"    "<<id<<endl;
+
+    //cout << get_value_dep(text, "66") << endl;
+
+    //string value="656*2";
+    //int dep = get_value_dep(value);
+    //cout<<value<<" "<<dep<<endl;
+
+    //cout<<"-----"<<endl;
+    //cout<<sql.select_db("nodos")<<endl;
+    //string name = "d5|A|B|C";
+    //int c;
+    //cout<<no_id_client(name,c)<<"----"<<c+2<<endl;
+    //int cc = 4;
+    //cout<<int_to_string(cc,2)<<endl;
 
     return 0;
 }

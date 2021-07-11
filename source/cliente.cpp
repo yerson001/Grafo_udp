@@ -67,7 +67,7 @@ void reading(int sock)
             string structure(recv_data, 1000);
             structure.erase(0,1);
             //--------------------formato-------------------
-            cout << "recibido->repositoio->master->client: " <<structure<< endl;
+            cout << "RECIBIDO (R->M->C): " <<structure<< endl;
             //get_values(structure);
             structure.clear();
         }
@@ -138,14 +138,21 @@ void writing(int sock)
         }
         case 'r':
         {
+            string dep;
             string str;
-            cout << "Enter the name of the table \n";
+            cout << "Enter the name of node\n";
             string name; //3 bits
             cout << "name: ";
             cin >> name;
-            name = "r" + name+"$";
+            cout<<"dep: ";
+            cin >> dep;
+
+
+
+            name = "r" + name+"*"+dep+"$";
             str.assign(1000-name.size()-1,'0');
             name +=str;
+            //cout<<"this-> "<<name<<endl;
             n = sendto(sock, name.c_str(), name.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
             break;
         }
