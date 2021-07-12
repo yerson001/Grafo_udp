@@ -25,6 +25,12 @@ struct sockaddr_in server_addr, client_addr;
 vector<struct sockaddr_in> clientsAddr;
 vector<struct sockaddr_in> repositories;
 
+typedef struct mystruct
+{
+    int mydouble;
+    struct sockaddr_in to_send[3];
+} mystruct;
+
 string int_to_string(int number, int digits)
 {
     string ans = "";
@@ -65,7 +71,7 @@ int string_int(string s)
     geek >> x;
     return x;
 }
-// fucnion para eliminar el indice del cliente 
+// fucnion para eliminar el indice del cliente
 // para saber que cliente es y no alterar la cadena
 // d|cliente01|resconsulta -> d|resconsulta --> sola del [0..9]
 string no_id_client(string &name, int &client)
@@ -73,7 +79,7 @@ string no_id_client(string &name, int &client)
     string primera = name.substr(0, 1);
     string segunda = name.substr(2, name.size());
     //cout<<primera<<"   "<<segunda<<"  "<<name.substr(1,1)<<endl;
-    client = stoi(name.substr(1,1));
+    client = stoi(name.substr(1, 1));
     return primera + segunda;
 }
 
@@ -82,17 +88,18 @@ int hashFunction(int x, int SIZE)
 {
     return (x % SIZE);
 }
-string get_value(string name){
+string get_value(string name)
+{
     int d = name.find("*");
-    name.erase(d,name.size());
-    name.erase(0,1);
+    name.erase(d, name.size());
+    name.erase(0, 1);
     return name;
 }
 
-void reading(int sock)
+void reading(int sock, int n_repos)
 {
     char recv_data[BUFFER];
-    int n, rc;
+    int n, rc, number_repo = 0;
     socklen_t addr_len;
     addr_len = sizeof(struct sockaddr);
     string id_client; // Store the position of the IP address in clientsAddr
@@ -104,18 +111,41 @@ void reading(int sock)
         {
             perror("ERROR reading from socket");
         }
-        if (recv_data[0] == 'R')
-        {/*
+
+        if (recv_data[0] == 'R' && number_repo < n_repos)
+        { /*
             for (int i = 0; i < repositories.size(); i++)
             {
                 if (repositories[i].sin_port != client_addr.sin_port)
                     repositories.push_back(client_addr);
             }
             if (repositories.size() == 0)*/
-                repositories.push_back(client_addr);
+            repositories.push_back(client_addr);
             cout << "repositorio registrado " << endl;
             //printf("[%i] [%s : %hd]\n", repositories.size(), inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+            number_repo++;
+            cout << "CONTADOR NUMBER: " << number_repo << endl;
+            // cuando alcanzmos el numero maximo de repositorios que es n_repos
+            // reenciamos las direciones ip y puerto a los demas repositorios
+            if (number_repo == n_repos)
+            {
+                mystruct send_struct;
+                cout << "NUMERO REPOSITORIOS: " << number_repo << endl;
+                // llenamos nuestra estructura con los valores de los repositorios
+                for (int i = 0; i < number_repo; i++)
+                {
+                    send_struct.mydouble = number_repo;
+                    send_struct.to_send[i] = repositories[i];
+                    bzero(&(send_struct.to_send[i].sin_zero), 8);
+                }
+                // enviamos la estrucutra a todos los reposritorios
+                for (int i = 0; i < number_repo; i++)
+                {
+                    n = sendto(sock, (void *)&send_struct, sizeof(send_struct), 0, (struct sockaddr *)&repositories[i], sizeof(struct sockaddr));
+                }
+            }
         }
+
         if (recv_data[0] == 'c') // Client create a node
         {
             string structure(recv_data, BUFFER);
@@ -158,20 +188,19 @@ void reading(int sock)
         {
             // 'id_client' is the posicion of the client address in 'clientsAddr'
             id_client = storeClientAddress();
-             
 
             string structure(recv_data, BUFFER);
             //eliminar primer caracter 'r'
             //structure.erase(0,1);
-            
+
             cout << "recibido->client: " << structure << endl;
 
             //int res = structure[0] % (repositories.size());}
             //para usar la funcion hash necesitamos el valor para saber
-            //enque repositorioesta  
+            //enque repositorioesta
             string nodo_ = get_value(structure);
             int res = hashFunction(string_int(nodo_), repositories.size());
-               cout << "repositorio: " << res << endl;
+            cout << "repositorio: " << res << endl;
             cout << "Numero de repositorios: " << repositories.size() << endl;
 
             structure = id_client + structure;
@@ -184,9 +213,9 @@ void reading(int sock)
             int clientIndex;
             string structure(recv_data, BUFFER);
             cout << "RECIBIDO (R->M): " << structure << endl;
-           
+
             structure = no_id_client(structure, clientIndex);
-            cout << "CLIENT->INDEX: "<<clientIndex<<endl;
+            cout << "CLIENT->INDEX: " << clientIndex << endl;
 
             n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&clientsAddr[clientIndex], sizeof(struct sockaddr));
             //n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr));
@@ -218,7 +247,7 @@ int main()
 
     printf("[%s] [%s : %hd]\n", "Master: ", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
     //reading(sock);
-    thread(reading, sock).detach();
+    thread(reading, sock, 3).detach();
     for (;;)
     {
     }

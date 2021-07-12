@@ -97,7 +97,7 @@ string SQlite::select_dep(string table, string value, int dep = 0)
       fprintf(stderr, "query error%s\n", error);
       sqlite3_free(error);
    }
-   return rpt_query;
+   return rpt_query; 
 }
 
 void SQlite::insert_db(string table, string campos)

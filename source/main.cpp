@@ -33,7 +33,7 @@ string no_id_client(string &name, int &client)
     string primera = name.substr(0, 1);
     string segunda = name.substr(2, name.size());
     //cout<<primera<<"   "<<segunda<<"  "<<name.substr(1,1)<<endl;
-    client = stoi(name.substr(1,1));
+    client = stoi(name.substr(1, 1));
     return primera + segunda;
 }
 
@@ -104,6 +104,32 @@ vector<string> get_value_dep(string query, string value)
     }
     return niveles;
 }
+
+vector<string> get_value_dep_filter(string &query, string value)
+{
+    vector<string> niveles;
+    //cout<<"num_ieracion: "<<num_colum(query)<<endl;
+    int it = num_colum(query);
+    it = it * 2;
+    for (int i = 0; i < it; i++)
+    {
+        int d = query.find("|");
+        //cout << "str: " << query.substr(0, d) << endl;
+        if (value == query.substr(0, d))
+        {
+            query.erase(0, d + 1);
+            //cout<<"quwr"<<query<<endl;
+        }
+        else
+        {
+            niveles.push_back(query.substr(0, d));
+            query.erase(0, d + 1);
+        }
+    }
+    return niveles;
+}
+
+
 void start(string name)
 {
     SQlite sql(name);
@@ -112,7 +138,6 @@ void start(string name)
     cout << "query: " << todos_relaciones << endl;
     cout << "columnas: " << num_colum(todos_relaciones) << endl;
 
-
     vector<string> los_niveles = get_value_dep(todos_relaciones, "66");
     for (int i = 0; i < los_niveles.size(); i++)
     {
@@ -120,15 +145,68 @@ void start(string name)
     }
 }
 
+//funcion para saber el numero de repositorio a travez
+// de su nombre   repo0.db
+// retorna 0 en int 
+int num_repo(string name)
+{
+    string to_dep = name;
+    int d = name.find(".");
+    int dep = 0;
+    name.erase(d-2,d);
+    dep = string_int(name);
+    //cout<<"---> "<<dep<<endl;
+    return dep;
+}
+
+map<int,vector<int>> nivel_2;
+vector<int> actual_nivel;
+string cortar(string m)
+{cout<<"entrando"<<endl;
+    string str(m);
+    int dolar = str.find("$");
+    str.erase(dolar, str.size());
+    //cout << str << endl;
+    return str;
+}
+
 int main()
 {
     start("repo0.db");
 
-    string test =  "d066|12|66|77|66|88|";
-    int id;
-    cout<<no_id_client(test,id)<<"    "<<id<<endl;
+    string test = "d066|12|66|77|66|88|";
+    string it = "77|66|$0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+    string dd;
+    
+   
+    if(it.find("$")<100){
+        dd= cortar(it);
+    }
+     
+    cout<<"it -- "<<dd<<endl;
 
-    //cout << get_value_dep(text, "66") << endl;
+
+    nivel_2.insert(pair<int,vector<int>>(1,actual_nivel));
+
+
+
+    vector<string> op;
+    string text = "12|22|12|10|12|11|77|66|88|66|";
+
+    op =  get_value_dep_filter(text, "12");
+    for(int i=0; i<op.size(); i++){
+        cout<<"_-->"<<op[i];
+    }cout<<endl;
+    
+    op =  get_value_dep_filter(text, "77");
+        for(int i=0; i<op.size(); i++){
+        cout<<"_-->"<<op[i];
+    }cout<<endl;
+    
+    op =  get_value_dep_filter(text, "88");
+    for(int i=0; i<op.size(); i++){
+        cout<<"_-->"<<op[i];
+    }cout<<endl;
 
     //string value="656*2";
     //int dep = get_value_dep(value);

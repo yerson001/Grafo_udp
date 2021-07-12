@@ -18,14 +18,29 @@
 #include <vector>
 #include <sstream>
 #include "SQlite.h"
+#include <map>
 using namespace std;
 struct sockaddr_in server_addr;
 struct hostent *host;
 vector<string> nombre_atributos;
 vector<string> valor_atributos;
 vector<string> valor_relaciones;
+vector<struct sockaddr_in> repositories;
+map<int, vector<string>> nivel_2;
+
+typedef struct mystruct
+{
+    int mydouble;
+    struct sockaddr_in to_send[3];
+} mystruct;
 
 int BUFFER = 100;
+
+//*************hash*******************
+int hashFunction(int x, int SIZE)
+{
+    return (x % SIZE);
+}
 
 int string_int(string s)
 {
@@ -83,7 +98,19 @@ int get_value_dep(string &name)
     //cout<<"---> "<<dep<<endl;
     return dep;
 }
-
+//funcion para saber el numero de repositorio a travez
+// de su nombre   repo0.db
+// retorna 0 en int
+int num_repo(string name)
+{
+    string to_dep = name;
+    int d = name.find(".");
+    int dep = 0;
+    name.erase(d - 2, d);
+    dep = string_int(name);
+    //cout<<"---> "<<dep<<endl;
+    return dep;
+}
 void inserciones(string nodo, int a, int r, string name_db)
 {
     SQlite db(name_db);
@@ -218,7 +245,28 @@ void writing(int sock, string name_db)
     string structure = "R";
     //cout<<"MSG: ";
     //cin>>structure;
+    //enviamos nuesto ip-port al repositorio
     n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
+    int foo = 1;
+    mystruct get_struct;
+    // esperamos que el repositorio nos mande la lista de los demas repositorios
+    while (foo)
+    {
+        n = recvfrom(sock, (void *)&get_struct, sizeof(get_struct), 0, (struct sockaddr *)&server_addr, &addr_len);
+        //printf("(M->R)NUM REPO: %f\n", get_struct.mydouble);
+        cout << "\t RENVIO DE IP-PORT" << endl;
+        for (int i = 0; i < get_struct.mydouble; i++)
+        {
+            repositories.push_back(get_struct.to_send[i]);
+        }
+
+        for (int i = 0; i < repositories.size(); i++)
+        {
+            printf("(M->R)LIST REPO [%i] [%s : %hd]\n", i, inet_ntoa(repositories[i].sin_addr), ntohs(repositories[i].sin_port));
+        }
+        foo = 0;
+    }
+    cout << "\t -------END------- " << endl;
     while (true)
     {
         //printf("msg server-----repo");
@@ -252,20 +300,126 @@ void writing(int sock, string name_db)
             s.erase(0, 1);
             cout << "S->R: " << s << endl;
             string nodo = s;
+            string respuesta;
+            string query;
             int dep = get_value_dep(nodo);
             //separamos el nombre y la prufundidad
             cout << "nodo: " << nodo << "-->" << dep << endl;
             // todas las relacioens retorna ---> nodo = 66  66|12|66|77|66|88|
             string todos_relaciones = db.select_dep("relaciones", nodo);
+
             //Eliminar la columna nodo_inicial y guardar en un vector los valores
+            // nodo= 66  [12][77][88]
             vector<string> los_niveles = get_value_dep(todos_relaciones, nodo);
-            //mostramos los niveles
-            for (int i = 0; i < los_niveles.size(); i++)
+            cout << "NUMERO DE REPOSITORIOS: " << repositories.size() << endl;
+            /*
+            [0]12
+            [1]77
+            [2]88
+            */
+            if (dep == 0)
             {
-                cout << "into niveles: " << los_niveles[i] << endl;
+                respuesta.clear();
+                respuesta = "|" + nodo + "| ->";
             }
 
-            string respuesta = db.select_dep("relaciones", nodo, dep);
+            if (dep == 1)
+            {
+                respuesta.clear();
+
+                for (int i = 0; i < los_niveles.size(); i++)
+                {
+                    cout << "LAS RELACIONES: " << los_niveles[i] << endl;
+                    respuesta += " |" + los_niveles[i] + "| ->";
+                }
+            }
+            else if (dep == 2)
+            {
+                respuesta.clear();
+                string respuesta_repo;
+                string structure_copy;
+                string final_respuesta;
+                char recv_data[BUFFER];
+                //recorremos los niveles
+                for (int it = 0; it < los_niveles.size(); it++)
+                {
+                    vector<string> actual_temp;
+                    int res = hashFunction(string_int(los_niveles[it]), repositories.size());
+                    cout << "RELACION: " << los_niveles[it] << " (R->R) NUMBER_REPO: " << res << " NIVELES SIZE: " << los_niveles.size() << endl;
+                    // enviar a l repositorio correspndiente preguntando
+                    structure_copy = to_string(num_repo(name_db)) + "p" + los_niveles[it] + "*1$"; // [p12]  [77] [88]
+                    // si el nodo que buscamos esta en nuestra base de datos no enviamos nada
+                    if (res == num_repo(name_db))
+                    {
+                        //obtenemos las relaciones de [12]
+                        string todos_rel = db.select_dep("relaciones", los_niveles[it]);
+                        respuesta_repo = todos_rel;
+                        todos_rel.clear();
+                    }// buscamos el nodo en otro repositorio
+                    if (res != num_repo(name_db))
+                    {
+                        string str;
+                        str.assign(BUFFER - structure_copy.size() - 1, '0');
+                        structure_copy = structure_copy + str;
+                        n = sendto(sock, structure_copy.c_str(), BUFFER, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
+                        int faa = 1;
+                        //esperamos a que el otro repositorio responda
+                        while (faa)
+                        {
+                            //cout << "while" << endl;
+                            n = recvfrom(sock, recv_data, BUFFER, 0, (struct sockaddr *)&server_addr, &addr_len);
+                            string respuesta_dep(recv_data, BUFFER);
+                            respuesta_repo = respuesta_dep;
+                            faa = 0;
+                        }
+                    }
+                    //if(respuesta.find("$")>BUFFER && res!=num_repo(name_db)){
+                    //    respuesta = cortar(respuesta);
+                    //}
+                    cout << "FIND: " << respuesta.find("$") << endl;
+                    cout << "RESPUESTA DEL REPO [" << res << "] [ " << los_niveles[it] << " ]: " << respuesta_repo << endl;
+
+                    if (respuesta_repo.size() < BUFFER)
+                    {
+                        vector<string> data = get_value_dep(respuesta_repo, los_niveles[it]);
+                        for (int i = 0; i < data.size(); i++)
+                        {
+                            cout << "DATA else" << data[i] << endl;
+                            if (data[i] != nodo)
+                            {
+                                respuesta += " |" + data[i] + "| ->";
+                            }
+                        }
+                        cout << "[RESPUESTA:" << respuesta <<"]"<< endl;
+                        data.clear();
+                    }
+                    else
+                    {
+                        cout << "[RESPUESTA CHEKA:" << respuesta <<"]"<< endl;
+                        respuesta += cortar(respuesta_repo); 
+                        vector<string> data = get_value_dep(respuesta_repo, los_niveles[it]);
+                        for (int i = 0; i < data.size(); i++)
+                        {
+                            cout << "DATA else" << data[i] << endl;
+                            if (data[i] != nodo)
+                            {
+                                respuesta += " |" + data[i] + "| ->";
+                            }
+                        }
+                        cout << "[RESPUESTA:" << respuesta <<"]"<< endl;
+                        data.clear();
+                    }
+
+                    actual_temp.clear();
+                }
+            }
+            /*vector<string> final;
+            for(int i=0; i<los_niveles.size(); i++){
+                final = get_value_dep(respuesta,los_niveles[i]);
+            }*/
+
+            //string respuesta = db.select_dep("relaciones", nodo, dep);
+            cout << "[RESPUESTA:" << respuesta <<"]"<< endl;
             respuesta = "d" + id_client + respuesta;
             cout << "SELECT->DEP: (R->M) " << respuesta << endl;
             if (respuesta.size() != 0)
@@ -276,7 +430,33 @@ void writing(int sock, string name_db)
             respuesta.clear();
             id_client.clear();
         }
+        if (s[0] == 'p')
+        {
+            db.init();
+            s.erase(0, 1);
+            cout << "R->R: " << s << endl;
+            string nodo = s;
+            string respuesta;
+            int dep = get_value_dep(nodo);
+            //separamos el nombre y la prufundidad
+            cout << "NODO: " << nodo << "-->" << dep << endl;
+            // todas las relacioens retorna ---> nodo = 66  66|12|66|77|66|88|
+            string todos_relaciones = db.select_dep("relaciones", nodo);
 
+            //Eliminar la columna nodo_inicial y guardar en un vector los valores
+            //vector<string> los_niveles = get_value_dep(todos_relaciones, nodo);
+            cout << "(R->R)NUMERO DE REPOSITORIOS: " << repositories.size() << endl;
+            cout << "(R->R) ALL_reques: " << todos_relaciones << endl;
+            respuesta = todos_relaciones + "$";
+
+            string str;
+            str.assign(BUFFER - respuesta.size() - 1, '0');
+            respuesta = respuesta + str;
+
+            n = sendto(sock, respuesta.c_str(), respuesta.size(), 0, (struct sockaddr *)&repositories[string_int(id_client)], sizeof(struct sockaddr));
+            respuesta.clear();
+            id_client.clear();
+        }
         //n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
 
         bzero(send_data, BUFFER);
@@ -300,6 +480,7 @@ int main(int argc, char *argv[])
     bzero(&(server_addr.sin_zero), 8);
     string name_db = argv[1];
     name_db = name_db + ".db";
-    cout << "NAME:" << name_db << endl;
+    printf("REPOSITORIO [%s : %hd]\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
+    cout << "NAME DB: " << name_db << endl;
     writing(sock, name_db);
 }

@@ -19,6 +19,7 @@
 using namespace std;
 struct sockaddr_in server_addr;
 struct hostent *host;
+int BUFFER = 100;
 string int_to_string(int number, int digits)
 {
     string ans = "";
@@ -56,15 +57,15 @@ string get_values(string data)
 void reading(int sock)
 {
     int n, write_sise;
-    char recv_data[1000];
+    char recv_data[BUFFER];
     socklen_t addr_len;
    
     while (1)
     {
-        n = recvfrom(sock, recv_data, 1000, 0, (struct sockaddr *)&server_addr, &addr_len);
+        n = recvfrom(sock, recv_data, BUFFER, 0, (struct sockaddr *)&server_addr, &addr_len);
         if (recv_data[0] == 'd')
         {
-            string structure(recv_data, 1000);
+            string structure(recv_data, BUFFER);
             structure.erase(0,1);
             //--------------------formato-------------------
             cout << "RECIBIDO (R->M->C): " <<structure<< endl;
@@ -78,7 +79,7 @@ void reading(int sock)
 void writing(int sock)
 {
     int n, write_sise;
-    char send_data[1000];
+    char send_data[BUFFER];
     socklen_t addr_len;
     while (true)
     {
@@ -129,11 +130,11 @@ void writing(int sock)
                 int_to_string(number_relations, 3) + name_node + attributes_structure + relations_structure+"$";
             cout << "send to server: " << structure << endl;
             string str;
-            str.assign(1000-structure.size()-1,'0');
+            str.assign(BUFFER-structure.size()-1,'0');
             structure+=str;
 
             n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
-            //n=recvfrom(sock, send_data,1000, 0, (struct sockaddr *)&server_addr, &addr_len);
+            //n=recvfrom(sock, send_data,BUFFER, 0, (struct sockaddr *)&server_addr, &addr_len);
             break;
         }
         case 'r':
@@ -150,7 +151,7 @@ void writing(int sock)
 
 
             name = "r" + name+"*"+dep+"$";
-            str.assign(1000-name.size()-1,'0');
+            str.assign(BUFFER-name.size()-1,'0');
             name +=str;
             //cout<<"this-> "<<name<<endl;
             n = sendto(sock, name.c_str(), name.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
