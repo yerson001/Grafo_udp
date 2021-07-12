@@ -26,7 +26,7 @@ Los ejecutables
 $ master  repositorio  client  main
 ~~~
 
-Para esta prueba usaremos 1 cliente; 1 Master ; 3 Repositorios
+## Para esta prueba usaremos 1 cliente; 1 Master ; 3 Repositorios
 ~~~
             C
             |
@@ -36,22 +36,22 @@ Para esta prueba usaremos 1 cliente; 1 Master ; 3 Repositorios
           -    -    
 ~~~
 
-Ejecute master->(gestiona al los clientes  y los repositorios)
+1 Ejecute master->(gestiona al los clientes  y los repositorios)
 ~~~
 $>> ./master
 ~~~
 
-Ejecute un repositorio1 -> envíele la base de datos repo0.db
+2 Ejecute un repositorio1 -> envíele la base de datos repo0.db
 ~~~
 $>> ./repositorio repo0
 ~~~
 
-Ejecute un repositorio2 -> envíele la base de datos repo1.db
+2.1 Ejecute un repositorio2 -> envíele la base de datos repo1.db
 ~~~
 $>> ./repositorio repo1
 ~~~
 
-Ejecute un repositorio3 -> envíele la base de datos repo2.db
+2.2 Ejecute un repositorio3 -> envíele la base de datos repo2.db
 ~~~
 $>> ./repositorio repo2
 ~~~
@@ -61,7 +61,7 @@ Copie las bases de datos (repo0.db) (repo1.db) (repo2.db)
 ~~~
 $>> copiar mydata.db que esta en source a la carpeta build
 ~~~
-Ejecute un cliente
+3 Ejecute un cliente
 ~~~
 $>>./client
 ~~~
