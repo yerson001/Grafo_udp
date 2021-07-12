@@ -4,6 +4,7 @@
 ![test para la cola](img/grafo.jpeg)
 ## Hash Repositorio
 ![test para la cola](img/hash.png)
+
 Diríjase al directorio grafo
 ~~~
 $>> cd grafo
