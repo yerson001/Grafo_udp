@@ -172,6 +172,8 @@ void reading(int sock, int n_repos, struct sockaddr_in server_addr)
             structure = structure.substr(size_nodo, structure.size());
             structure.clear();
             //int res = name_node[0] % (repositories.size());
+            // 67
+            //carmen
             int res = hashFunction(string_int(name_node), repositories.size());
             //cout << "ressss " << res << endl;
             //cout << "size_repo " << repositories.size() << endl;// 0 1 2
