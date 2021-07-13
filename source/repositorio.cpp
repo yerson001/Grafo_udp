@@ -19,6 +19,7 @@
 #include <sstream>
 #include "SQlite.h"
 #include <map>
+#include <ctype.h>
 using namespace std;
 struct sockaddr_in server_addr;
 struct sockaddr_in server_addr_r;
@@ -163,6 +164,54 @@ vector<string> get_value_dep(string query, string value)
     }
     return niveles;
 }
+
+
+//funciones para update---->_>__>
+void update(string s){
+    string name_node,name_new_n;
+    int size_node =string_int(s.substr(1,3));s=s.substr(4,s.size());
+    name_node=s.substr(0,size_node);name_node="'"+name_node+"',";//nombre del nodo
+    s=s.substr(size_node,s.size());
+    int size_new_node=string_int(s.substr(0,3));s=s.substr(3,s.size());
+    name_new_n=s.substr(0,size_new_node);//nombre del nuevo nodo
+    name_new_n="'"+name_new_n+"',";
+    //s=s.substr(size_new_node,s.size());
+    //int number_attributes=string_int(s.substr(0,2));s=s.substr(2,s.size());
+    int j=3;
+    string name_attributes,values;
+    /*
+    for(int i=0;i<number_attributes;i++){
+        size_node=string_int(s.substr(0,j));j+=3;
+        size_new_node=string_int(s.substr(4,j));
+        string attribute=s.substr(j,size_node);j=j+size_node;
+        name_attributes+="'"+attribute+"',";
+        string value=s.substr(j,size_new_node);s=s.substr(size_new_node+j,s.size());j=3;
+        values+="'"+value+"',";
+    }*/
+    cout<<name_node<<" "<<name_new_n<<" "<<name_attributes<<" "<<values<<endl;  
+}
+void delete_(string s){
+    int size_name=string_int(s.substr(1,3));s=s.substr(4,s.size());
+    string name=s.substr(0,size_name);s=s.substr(size_name,s.size());
+    int number_attribute=string_int(s.substr(0,2));s=s.substr(2,s.size());
+    int number_relation=string_int(s.substr(0,2));s=s.substr(2,s.size());
+    string attribute,attributes;
+    for(int i=0;i<number_attribute;i++){
+        int t=string_int(s.substr(0,3));s=s.substr(3,s.size());
+        attribute=s.substr(0,t);s=s.substr(t,s.size());
+        attributes+="'"+attribute+"',";
+    }
+    string relation,relations;
+    for(int i=0;i<number_relation;i++){
+        cout<<s<<endl;
+        int t=string_int(s.substr(0,3));s=s.substr(3,s.size());
+                
+        relation=s.substr(0,t);s.substr(t,s.size());
+        relations+="'"+relation+"',";
+    }
+    cout<<name<<" "<<attributes<<" "<<relations<<endl;
+}
+
 void read(string &structure, string name_db)
 {
     string nombre_nodo("");
@@ -236,16 +285,15 @@ void read(string &structure, string name_db)
     }
     inserciones(nombre_nodo, number_attributes, number_relations, name_db);
 }
-void writing(int sock, string name_db,string servidor)
+void writing(int sock, string name_db, string servidor)
 {
     SQlite db(name_db);
     int n, write_sise;
 
     char send_data[BUFFER];
     socklen_t addr_len;
+    
     string structure = "R";
-    //cout<<"MSG: ";
-    //cin>>structure;
     //enviamos nuesto ip-port al repositorio
     n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
     int foo = 1;
@@ -341,11 +389,29 @@ void writing(int sock, string name_db,string servidor)
                 string structure_copy;
                 string final_respuesta;
                 char recv_data[BUFFER];
+                int res;
                 //recorremos los niveles
                 for (int it = 0; it < los_niveles.size(); it++)
                 {
                     vector<string> actual_temp;
-                    int res = hashFunction(string_int(los_niveles[it]), repositories.size());
+
+                    //                    int res = hashFunction(string_int(los_niveles[it]), repositories.size());
+                    //************************MODULO****************************
+                    int n = los_niveles[it].length();
+                    char val[n + 1];
+                    strcpy(val, los_niveles[it].c_str());
+                    int res;
+                    if (isalpha(val[0]))
+                    {
+                        res = los_niveles[it][0] % (repositories.size());
+                    }
+                    else
+                    {
+                        //funcion original
+                        res = hashFunction(string_int(los_niveles[it]), repositories.size());
+                    }
+                    //****************************************************
+
                     cout << "RELACION: " << los_niveles[it] << " (R->R) NUMBER_REPO: " << res << " NIVELES SIZE: " << los_niveles.size() << endl;
                     // enviar a l repositorio correspndiente preguntando
                     structure_copy = to_string(num_repo(name_db)) + "p" + los_niveles[it] + "*1$"; // [p12]  [77] [88]
@@ -474,6 +540,17 @@ void writing(int sock, string name_db,string servidor)
             respuesta_repositorio.clear();
             id_client.clear();
         }
+        if(s[0]=='u'){
+            string update_ = s;
+            cout<<"UPDATE: "<<update_<<endl;
+            //update(update_);
+            id_client.clear();
+        }
+        if(s[0]=='b'){
+            cout<<"DELETE: "<<s<<endl;
+            delete_(s);
+            id_client.clear();
+        }
         //n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
 
         bzero(send_data, BUFFER);
@@ -501,5 +578,5 @@ int main(int argc, char *argv[])
     name_db = name_db + ".db";
     printf("REPOSITORIO [%s : %hd]\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
     cout << "NAME DB: " << name_db << endl;
-    writing(sock, name_db,ip);
+    writing(sock, name_db, ip);
 }

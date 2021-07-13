@@ -170,6 +170,33 @@ string cortar(string m)
     return str;
 }
 
+
+void update(string s){
+    string name_node,name_new_n;
+    int size_node =string_int(s.substr(1,3));s=s.substr(4,s.size());
+    name_node=s.substr(0,size_node);name_node="'"+name_node+"',";//nombre del nodo
+    s=s.substr(size_node,s.size());
+    int size_new_node=string_int(s.substr(0,3));s=s.substr(3,s.size());
+    name_new_n=s.substr(0,size_new_node);//nombre del nuevo nodo
+    name_new_n="'"+name_new_n+"',";
+    //s=s.substr(size_new_node,s.size());
+    //int number_attributes=string_int(s.substr(0,2));s=s.substr(2,s.size());
+    int j=3;
+    string name_attributes,values;
+    /*
+    for(int i=0;i<number_attributes;i++){
+        size_node=string_int(s.substr(0,j));j+=3;
+        size_new_node=string_int(s.substr(4,j));
+        string attribute=s.substr(j,size_node);j=j+size_node;
+        name_attributes+="'"+attribute+"',";
+        string value=s.substr(j,size_new_node);s=s.substr(size_new_node+j,s.size());j=3;
+        values+="'"+value+"',";
+    }*/
+    cout<<name_node<<" "<<name_new_n<<" "<<name_attributes<<" "<<values<<endl;  
+}
+
+
+
 int main()
 {
     start("repo0.db");
@@ -188,25 +215,7 @@ int main()
 
     nivel_2.insert(pair<int,vector<int>>(1,actual_nivel));
 
-
-
-    vector<string> op;
-    string text = "12|22|12|10|12|11|77|66|88|66|";
-
-    op =  get_value_dep_filter(text, "12");
-    for(int i=0; i<op.size(); i++){
-        cout<<"_-->"<<op[i];
-    }cout<<endl;
-    
-    op =  get_value_dep_filter(text, "77");
-        for(int i=0; i<op.size(); i++){
-        cout<<"_-->"<<op[i];
-    }cout<<endl;
-    
-    op =  get_value_dep_filter(text, "88");
-    for(int i=0; i<op.size(); i++){
-        cout<<"_-->"<<op[i];
-    }cout<<endl;
+    update("u00266003111");
 
     //string value="656*2";
     //int dep = get_value_dep(value);

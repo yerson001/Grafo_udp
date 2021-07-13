@@ -16,7 +16,7 @@
 #include <sstream>
 //#include <sqlite3.h>
 #include <map>
-
+#include <ctype.h>
 int BUFFER = 100;
 
 using namespace std;
@@ -95,6 +95,14 @@ string get_value(string name)
     name.erase(0, 1);
     return name;
 }
+string obtener_name_node(string structure)
+{
+    int size_nodo = string_int(structure.substr(1, 3));
+    structure = structure.substr(4, BUFFER);
+    string name_node = structure.substr(0, size_nodo);
+    structure = structure.substr(size_nodo, structure.size());
+    return name_node;
+}
 
 void reading(int sock, int n_repos, struct sockaddr_in server_addr)
 {
@@ -132,7 +140,7 @@ void reading(int sock, int n_repos, struct sockaddr_in server_addr)
                     send_struct.to_send[i] = repositories[i];
                     bzero(&(send_struct.to_send[i].sin_zero), 8);
                 }
-/*
+                /*
                 send_struct.mydouble = number_repo;
                 send_struct.to_send[number_repo+1] = server_addr;
                 bzero(&(send_struct.to_send[number_repo+1].sin_zero), 8);
@@ -172,9 +180,21 @@ void reading(int sock, int n_repos, struct sockaddr_in server_addr)
             structure = structure.substr(size_nodo, structure.size());
             structure.clear();
             //int res = name_node[0] % (repositories.size());
-            // 67
-            //carmen
-            int res = hashFunction(string_int(name_node), repositories.size());
+
+            int n = name_node.length();
+            char val[n + 1];
+            strcpy(val, name_node.c_str());
+            int res;
+            if (isalpha(val[0]))
+            {
+                res = name_node[0] % (repositories.size());
+            }
+            else
+            {
+                // funcion original
+                res = hashFunction(string_int(name_node), repositories.size());
+            }
+
             //cout << "ressss " << res << endl;
             //cout << "size_repo " << repositories.size() << endl;// 0 1 2
 
@@ -220,6 +240,42 @@ void reading(int sock, int n_repos, struct sockaddr_in server_addr)
 
             n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&clientsAddr[clientIndex], sizeof(struct sockaddr));
             //n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr));
+            id_client.clear();
+        }
+        if (recv_data[0] == 'u')
+        {
+            id_client = storeClientAddress();
+            string structure(recv_data, BUFFER);
+            cout <<"(C->M): "<<structure << endl;
+
+            string name_node = obtener_name_node(structure);
+             cout<<"NOMBRE NODO UPDATE:"<<name_node<<endl;
+            int n = name_node.length();
+            char val[n + 1];
+            strcpy(val, name_node.c_str());
+            int res;
+            if (isalpha(val[0]))
+            {
+                res = name_node[0] % (repositories.size());
+            }
+            else
+            {
+                // funcion original
+                res = hashFunction(string_int(name_node), repositories.size());
+            }
+
+            //int res = hashFunction(string_int(obtener_name_node(structure)), repositories.size());
+            structure = id_client+structure;
+            cout<<"(C->M)UPDATE:"<<structure<<endl;
+            n = sendto(sock, structure.c_str(), BUFFER, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
+            id_client.clear();
+        }
+        if (recv_data[0] == 'b')
+        {
+            string structure(recv_data, BUFFER);
+            cout << structure << endl;
+            int res = hashFunction(string_int(obtener_name_node(structure)), repositories.size());
+            n = sendto(sock, structure.c_str(), BUFFER, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
             id_client.clear();
         }
     }
