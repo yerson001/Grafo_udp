@@ -32,8 +32,7 @@ $ master  repositorio  client  main
             |
             M
           / | \
-        R0  R1  R2
-          -    -    
+        R0->R1->R2    
 ~~~
 
 1 Ejecute master->(gestiona al los clientes  y los repositorios)
