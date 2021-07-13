@@ -1,4 +1,6 @@
-
+# Grafo Distribuído UDP
+## Diagrama
+![test para la cola](img/Selección_059.png)
 ## Ejecución del programa
 ## Grafo
 ![test para la cola](img/grafo.jpeg)
@@ -70,5 +72,4 @@ $>>./client
 Puede crear varios clientes 
 ## Prueba en Google-Cloud
 ![test para la cola](img/cloud.png)
-## Diagrama
-![test para la cola](img/Selección_059.png)
+
