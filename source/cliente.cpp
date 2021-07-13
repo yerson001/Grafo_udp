@@ -38,6 +38,7 @@ void print_menu()
     cout << "  - r: Read\n";
     cout << "  - u: Update\n";
     cout << "  - b: Delete\n";
+    cout << "  - s: Select\n";
 }
 
 string get_values(string data)
@@ -158,33 +159,33 @@ void writing(int sock)
         }
         case 'u':
         {
-            int activate, t;
-            string name, new_name;
-            cout << "update a Node and Atribute: 1 or a Node 0" << endl;
-            cin >> activate;
-            cout << "Enter the name of the Node you want to update" << endl;
-            cin >> name;
-            cout << "Enter the name of new Node " << endl;
-            cin >> new_name;
-            if (activate)
-            {
-                string attributes;
-                int size_name_atribute;
-                cout << "number of attributes you want to update " << endl;
-                cin >> t;
-                for (int i = 0; i < t; i++)
-                {
-                    string name_attribute, value;
-                    cout << "Enter the name of the atribute you want to update" << endl;
-                    cin >> name_attribute;
-                    cout << "Enter the new value of the atribute " << endl;
-                    cin >> value;
-                    attributes +=
-                        int_to_string(name_attribute.size(), 3) + int_to_string(value.size(), 3) + name_attribute + value;
-                }
-                structure = int_to_string(t, 2) + attributes;
+            int type;
+            string name_node1, name_node2, attribute, value;
+
+            cout << "What do you want to uptade?\n";
+            cout << "Press 0: Node,  1: Attributes" << endl;
+            cin >> type;
+            if (type == 0) {
+                cout << "Enter the name of the node" << endl;
+                cin >> name_node1;
+                structure = structure + int_to_string(name_node1.size(), 3) + name_node1;
+                cout << "Enter the name of the new node" << endl;
+                cin >> name_node2;
+                structure = structure + int_to_string(name_node2.size(), 3) + name_node2;
             }
-            structure = string(1, action) + int_to_string(name.size(), 3) + name + int_to_string(new_name.size(), 3) + new_name + structure + "$";
+            else {
+                cout << "Opp! There is nothing here yet." << endl; break;
+                /*cout << "Enter the name of the first node" << endl;
+                cin >> name_node1;
+                structure = int_to_string(name_node1.size(), 3) + name_node1 + structure;
+                cout << "Enter the name of the attribute" << endl;
+                cin >> attribute;
+                structure = int_to_string(attribute.size(), 3) + attribute + structure;
+                cout << "Enter the name of the new value" << endl;
+                cin >> value;
+                structure = int_to_string(value.size(), 3) + value + structure;*/
+            }
+            structure = string(1, action) + int_to_string(type,1) + structure + "$"; //
             cout << structure << endl;
             string str;
             str.assign(BUFFER - structure.size() - 1, '0');
@@ -195,36 +196,36 @@ void writing(int sock)
         case 'b':
         {
             int type;
-            string name_node, attributes, relations;
+            string name_node1, name_node2, attribute;
 
-            cout << " delete 1:Node 2:Node, attributes or/and relations" << endl;
+            cout << "What do you want to delete?\n";
+            cout << "Press 1: Node,  2: Attributes, 3: Relations" << endl;
             cin >> type;
-            cout << "write the name of Node" << endl;
-            cin >> name_node;
-            if (type == 2)
+            if (type == 1)
             {
-                int number_attributes, number_relations;
-                cout << "Enter number of attributes you want to delete" << endl;
-                cin >> number_attributes; //
-                string attribute;
-                for (int i = 0; i < number_attributes; i++)
-                {
-                    cout << "Enter the name of the atributes " << i + 1 << "\n";
-                    cin >> attribute;
-                    attributes += int_to_string(attribute.size(), 3) + attribute;
-                }
-                cout << "Enter number of relations you want to delete" << endl;
-                cin >> number_relations;
-                string relation;
-                for (int i = 0; i < number_relations; i++)
-                {
-                    cout << "Enter the name of the related node " << i + 1 << "\n";
-                    cin >> relation;
-                    relations += int_to_string(relation.size(), 3) + relation;
-                }
-                structure = int_to_string(number_attributes, 2) + int_to_string(number_relations, 2) + attributes + relations;
+                cout << "Enter the name of the node" << endl;
+                cin >> name_node1;
+                structure = int_to_string(name_node1.size(), 3) + name_node1 + structure;
             }
-            structure = string(1, action) + int_to_string(name_node.size(), 3) + name_node + structure + "$"; //
+            else if (type == 2)
+            {
+                cout << "Enter the name of the node" << endl;
+                cin >> name_node1;
+                cout << "Enter the name of the attribute" << endl;
+                cin >> attribute;
+                structure = int_to_string(name_node1.size(), 3) + name_node1 +
+                            int_to_string(attribute.size(), 3) + attribute + structure;
+            }
+            else
+            {
+                cout << "Enter the name of the first node" << endl;
+                cin >> name_node1;
+                cout << "Enter the name of the second node" << endl;
+                cin >> name_node2;
+                structure = int_to_string(name_node1.size(), 3) + name_node1 +
+                            int_to_string(name_node2.size(), 3) + name_node2 + structure;
+            }
+            structure = string(1, action) + int_to_string(type, 1) + structure + "$"; //
             cout << structure << endl;
             string str;
             str.assign(BUFFER - structure.size() - 1, '0');
@@ -234,6 +235,24 @@ void writing(int sock)
         }
         case 'q':
         {
+            break;
+        }
+        case 's':
+        {
+            string dep;
+            string str;
+            cout << "Enter the name of node\n";
+            string name; //3 bits
+            cout << "tabla: ";
+            cin >> name;
+            cout << "repositorio: ";
+            cin >> dep;
+
+            name = "s" + name + "*" + dep + "$";
+            str.assign(BUFFER - name.size() - 1, '0');
+            name += str;
+            //cout<<"this-> "<<name<<endl;
+            n = sendto(sock, name.c_str(), name.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
             break;
         }
         }

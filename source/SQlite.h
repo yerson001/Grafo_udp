@@ -33,7 +33,7 @@ public:
 
    static int callback_count(void *count, int argc, char **argv, char **azColName)
    {
-      int *c = (int*)count;
+      int *c = (int *)count;
       *c = atoi(argv[0]);
       return 0;
    }
@@ -43,7 +43,10 @@ public:
    void insert_db(string table, string campos);
    void delete_element_db(string table, string campo, string value);
    int count_db(string table, string value);
-
+   void delete1_db(string table, string column, string value);
+   void delete2_db(string table, string column1, string value1, string column2, string value2);
+   void update_db(string table, string column1, string newValue,
+             string column2, string oldValue);
    ~SQlite();
 };
 
@@ -97,7 +100,7 @@ string SQlite::select_dep(string table, string value, int dep = 0)
       fprintf(stderr, "query error%s\n", error);
       sqlite3_free(error);
    }
-   return rpt_query; 
+   return rpt_query;
 }
 
 void SQlite::insert_db(string table, string campos)
@@ -129,11 +132,50 @@ void SQlite::delete_element_db(string table, string campo, string value)
 int SQlite::count_db(string table, string value)
 {
    string SELECT = "SELECT * FROM " + table + " WHERE nodo_inicial = " + value + ";";
-   res = sqlite3_exec(db, SELECT.c_str(),callback_count, 0, &error);
+   res = sqlite3_exec(db, SELECT.c_str(), callback_count, 0, &error);
    if (res != SQLITE_OK)
    {
       fprintf(stderr, "query error%s\n", error);
       sqlite3_free(error);
    }
    return res;
+}
+
+void SQlite::delete1_db(string table, string column, string value)
+{
+   string DELETE = "DELETE FROM " + table + " WHERE " + column + " = " + value + ";";
+   //cout << DELETE << endl;
+   res = sqlite3_exec(db, DELETE.c_str(), NULL, 0, &error);
+   if (res != SQLITE_OK)
+   {
+      fprintf(stderr, "query error %s\n", error);
+      sqlite3_free(error);
+   }
+}
+
+void SQlite::delete2_db(string table, string column1, string value1, string column2, string value2)
+{
+   string DELETE = "DELETE FROM " + table + " WHERE " + column1 + " = '" + value1 +
+                   "' AND " + column2 + " = '" + value2 + "';";
+   //cout << DELETE << endl;
+   res = sqlite3_exec(db, DELETE.c_str(), NULL, 0, &error);
+   if (res != SQLITE_OK)
+   {
+      fprintf(stderr, "query error %s\n", error);
+      sqlite3_free(error);
+   }
+}
+
+void SQlite::update_db(string table, string column1, string newValue,
+                       string column2, string oldValue)
+{
+   string UPDATE = "UPDATE " + table + " SET " + column1 + " = '" + newValue +
+                   "' WHERE " + column2 + " = '" + oldValue + "';";
+   //cout << UPDATE << endl;
+   res = sqlite3_exec(db, UPDATE.c_str(), NULL, 0, &error);
+   if (res != SQLITE_OK)
+   {
+      fprintf(stderr, "query error %s\n", error);
+      sqlite3_free(error);
+   }
 }

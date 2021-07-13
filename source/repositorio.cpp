@@ -165,51 +165,66 @@ vector<string> get_value_dep(string query, string value)
     return niveles;
 }
 
-
 //funciones para update---->_>__>
-void update(string s){
-    string name_node,name_new_n;
-    int size_node =string_int(s.substr(1,3));s=s.substr(4,s.size());
-    name_node=s.substr(0,size_node);name_node="'"+name_node+"',";//nombre del nodo
-    s=s.substr(size_node,s.size());
-    int size_new_node=string_int(s.substr(0,3));s=s.substr(3,s.size());
-    name_new_n=s.substr(0,size_new_node);//nombre del nuevo nodo
-    name_new_n="'"+name_new_n+"',";
-    //s=s.substr(size_new_node,s.size());
-    //int number_attributes=string_int(s.substr(0,2));s=s.substr(2,s.size());
-    int j=3;
-    string name_attributes,values;
-    /*
-    for(int i=0;i<number_attributes;i++){
-        size_node=string_int(s.substr(0,j));j+=3;
-        size_new_node=string_int(s.substr(4,j));
-        string attribute=s.substr(j,size_node);j=j+size_node;
-        name_attributes+="'"+attribute+"',";
-        string value=s.substr(j,size_new_node);s=s.substr(size_new_node+j,s.size());j=3;
-        values+="'"+value+"',";
-    }*/
-    cout<<name_node<<" "<<name_new_n<<" "<<name_attributes<<" "<<values<<endl;  
+void update(string s, string name_db){
+    SQlite db(name_db);
+    db.init();
+    int type = string_int(s.substr(1,1));
+    s = s.substr(2,s.size());
+    if(type == 0){
+        int nodo1_size = string_int(s.substr(0,3)); s = s.substr(3,s.size());
+        string nodo1_name = s.substr(0,nodo1_size); s = s.substr(nodo1_size,s.size());
+        cout << "0-> " << nodo1_name << endl;
+        int nodo2_size = string_int(s.substr(0,3)); s = s.substr(3,s.size());
+        string nodo2_name = s.substr(0,nodo2_size);
+        cout << "0-> " << nodo2_name << endl;
+        db.update_db("nodos","name",nodo2_name,"name",nodo1_name);
+    }
+    else{
+        cout << "Ops! There is nothign here yet!" << endl;
+    }
 }
-void delete_(string s){
-    int size_name=string_int(s.substr(1,3));s=s.substr(4,s.size());
-    string name=s.substr(0,size_name);s=s.substr(size_name,s.size());
-    int number_attribute=string_int(s.substr(0,2));s=s.substr(2,s.size());
-    int number_relation=string_int(s.substr(0,2));s=s.substr(2,s.size());
-    string attribute,attributes;
-    for(int i=0;i<number_attribute;i++){
-        int t=string_int(s.substr(0,3));s=s.substr(3,s.size());
-        attribute=s.substr(0,t);s=s.substr(t,s.size());
-        attributes+="'"+attribute+"',";
+
+void delete_(string s, string name_db)
+{
+    SQlite db(name_db);
+    db.init();
+    int type = string_int(s.substr(1, 1));
+    s = s.substr(2, s.size());
+    if (type == 1)
+    {
+        int nodo_size = string_int(s.substr(0, 3));
+        s = s.substr(3, s.size());
+        string nodo_name = s.substr(0, nodo_size);
+        cout << "1-> " << nodo_name << endl;
+        db.delete1_db("nodos", "name", nodo_name);
     }
-    string relation,relations;
-    for(int i=0;i<number_relation;i++){
-        cout<<s<<endl;
-        int t=string_int(s.substr(0,3));s=s.substr(3,s.size());
-                
-        relation=s.substr(0,t);s.substr(t,s.size());
-        relations+="'"+relation+"',";
+    else if (type == 2)
+    {
+        int nodo_size = string_int(s.substr(0, 3));
+        s = s.substr(3, s.size());
+        string nodo_name = s.substr(0, nodo_size);
+        s = s.substr(nodo_size, s.size());
+        cout << "2-> " << nodo_name << endl;
+        int attribute_size = string_int(s.substr(0, 3));
+        s = s.substr(3, s.size());
+        string attribute_name = s.substr(0, attribute_size);
+        cout << "2-> " << attribute_name << endl;
+        db.delete2_db("atributos", "name_node", nodo_name, "name_atributo", attribute_name);
     }
-    cout<<name<<" "<<attributes<<" "<<relations<<endl;
+    else
+    {
+        int nodo1_size = string_int(s.substr(0, 3));
+        s = s.substr(3, s.size());
+        string nodo1_name = s.substr(0, nodo1_size);
+        s = s.substr(nodo1_size, s.size());
+        cout << "3-> " << nodo1_name << endl;
+        int nodo2_size = string_int(s.substr(0, 3));
+        s = s.substr(3, s.size());
+        string nodo2_name = s.substr(0, nodo2_size);
+        cout << "3-> " << nodo2_name << endl;
+        db.delete2_db("relaciones", "nodo_inicial", nodo1_name, "nodo_final", nodo2_name);
+    }
 }
 
 void read(string &structure, string name_db)
@@ -292,7 +307,7 @@ void writing(int sock, string name_db, string servidor)
 
     char send_data[BUFFER];
     socklen_t addr_len;
-    
+
     string structure = "R";
     //enviamos nuesto ip-port al repositorio
     n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
@@ -513,6 +528,7 @@ void writing(int sock, string name_db, string servidor)
             respuesta.clear();
             id_client.clear();
         }
+        //para consultas en otros repositorios
         if (s[0] == 'p')
         {
             db.init();
@@ -540,21 +556,64 @@ void writing(int sock, string name_db, string servidor)
             respuesta_repositorio.clear();
             id_client.clear();
         }
-        if(s[0]=='u'){
+        // update
+        if (s[0] == 'u')
+        {
             string update_ = s;
-            cout<<"(M->R)UPDATE: "<<update_<<endl;
-            //update(update_);
+            cout << "(M->R)UPDATE: " << update_ << endl;
+            update(update_,name_db);
             id_client.clear();
         }
-        if(s[0]=='b'){
-            cout<<"(M->R)DELETE: "<<s<<endl;
-            //delete_(s);
+        //delete
+        if (s[0] == 'b')
+        {
+            cout << "(M->R)DELETE: " << s << endl;
+            delete_(s, name_db);
             id_client.clear();
         }
-        //n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
+        if (s[0] == 's')
+        {
+            db.init();
+            s.erase(0, 1);
+            cout << "S->R(select): " << s << endl;
+            string nodo = s;
+            int dep = get_value_dep(nodo);
+            //separamos el nombre y la prufundidad
+            cout << "nodo: " << nodo << "-->" << dep << endl;
+            // todas las relacioens retorna ---> nodo = 66  66|12|66|77|66|88|
+            string todos_relaciones = db.select_db(nodo);
+            string respuesta = "d" + id_client + todos_relaciones + "$";
+            cout << "SELECT->DEP: (R->M) " << respuesta << endl;
+            string str;
+            str.assign(BUFFER - respuesta.size() - 1, '0');
+            respuesta = respuesta + str;
+            //***************************
+            int sock;
+            host = (struct hostent *)gethostbyname((char *)servidor.c_str());
+            //host = (struct hostent *)gethostbyname((char *)"34.152.23.49");
+            if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+            {
+                perror("socket");
+                exit(1);
+            }
+            server_addr_r.sin_family = AF_INET;
+            server_addr_r.sin_port = htons(5000);
+            server_addr_r.sin_addr = *((struct in_addr *)host->h_addr);
+            bzero(&(server_addr.sin_zero), 8);
+            //****************************
+            if (respuesta.size() != 0)
+            {
+                n = sendto(sock, respuesta.c_str(), respuesta.size(), 0, (struct sockaddr *)&server_addr_r, sizeof(struct sockaddr));
+            }
 
-        bzero(send_data, BUFFER);
+            respuesta.clear();
+            id_client.clear();
+        }
+        cout << "sali del read " << endl;
     }
+    //n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
+
+    bzero(send_data, BUFFER);
 }
 
 int main(int argc, char *argv[])

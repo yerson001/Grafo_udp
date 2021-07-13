@@ -63,7 +63,6 @@ string storeClientAddress()
     id_client = int_to_string(clientsAddr.size() - 1, 1);
     return id_client;
 }
-
 int string_int(string s)
 {
     stringstream geek(s);
@@ -71,6 +70,17 @@ int string_int(string s)
     geek >> x;
     return x;
 }
+int get_value_dep(string &name)
+{
+    string to_dep = name;
+    int d = name.find("*");
+    int dep = 0;
+    name.erase(d, name.size());
+    dep = string_int(to_dep.erase(0, d + 1));
+    //cout<<"---> "<<dep<<endl;
+    return dep;
+}
+
 // fucnion para eliminar el indice del cliente
 // para saber que cliente es y no alterar la cadena
 // d|cliente01|resconsulta -> d|resconsulta --> sola del [0..9]
@@ -99,6 +109,14 @@ string obtener_name_node(string structure)
 {
     int size_nodo = string_int(structure.substr(1, 3));
     structure = structure.substr(4, BUFFER);
+    string name_node = structure.substr(0, size_nodo);
+    structure = structure.substr(size_nodo, structure.size());
+    return name_node;
+}
+string obtener_name_node_2(string structure)
+{
+    int size_nodo = string_int(structure.substr(2, 3));
+    structure = structure.substr(5, BUFFER);
     string name_node = structure.substr(0, size_nodo);
     structure = structure.substr(size_nodo, structure.size());
     return name_node;
@@ -248,7 +266,7 @@ void reading(int sock, int n_repos, struct sockaddr_in server_addr)
             string structure(recv_data, BUFFER);
             cout << "(C->M): " << structure << endl;
 
-            string name_node = obtener_name_node(structure);
+            string name_node = obtener_name_node_2(structure);
             cout << "NOMBRE NODO UPDATE:" << name_node << endl;
             int n = name_node.length();
             char val[n + 1];
@@ -272,11 +290,11 @@ void reading(int sock, int n_repos, struct sockaddr_in server_addr)
         }
         if (recv_data[0] == 'b')
         {
-             id_client = storeClientAddress();
+            id_client = storeClientAddress();
             string structure(recv_data, BUFFER);
-           
+
             cout << "(C->M)DELETE: " << structure << endl;
-            string name_node = obtener_name_node(structure);
+            string name_node = obtener_name_node_2(structure);
             cout << "NOMBRE NODO DELETE:" << name_node << endl;
             int n = name_node.length();
             char val[n + 1];
@@ -292,6 +310,39 @@ void reading(int sock, int n_repos, struct sockaddr_in server_addr)
                 res = hashFunction(string_int(name_node), repositories.size());
             }
             structure = id_client + structure;
+            n = sendto(sock, structure.c_str(), BUFFER, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
+            id_client.clear();
+        }
+        if (recv_data[0] == 's') // Client send a query
+        {
+            // 'id_client' is the posicion of the client address in 'clientsAddr'
+            id_client = storeClientAddress();
+
+            string structure(recv_data, BUFFER);
+            //eliminar primer caracter 'r'
+            //structure.erase(0,1);
+
+            cout << "recibido->client: " << structure << endl;
+
+            //int res = structure[0] % (repositories.size());}
+            //para usar la funcion hash necesitamos el valor para saber
+            //enque repositorioesta
+            string nodo_ = get_value(structure);
+
+            int dep = get_value_dep(structure);
+            //separamos el nombre y la prufundidad
+            cout << "TABLA: " << nodo_ << " REPO: " << dep << endl;
+
+            int res = dep;
+
+            cout << "repositorio: " << res << endl;
+            cout << "Numero de repositorios: " << repositories.size() << endl;
+            
+
+            structure = id_client + structure+"*"+to_string(dep)+"$";
+            string str;
+            str.assign(BUFFER - structure.size() - 1, '0');
+            structure = structure + str;
             n = sendto(sock, structure.c_str(), BUFFER, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
             id_client.clear();
         }
