@@ -246,10 +246,10 @@ void reading(int sock, int n_repos, struct sockaddr_in server_addr)
         {
             id_client = storeClientAddress();
             string structure(recv_data, BUFFER);
-            cout <<"(C->M): "<<structure << endl;
+            cout << "(C->M): " << structure << endl;
 
             string name_node = obtener_name_node(structure);
-             cout<<"NOMBRE NODO UPDATE:"<<name_node<<endl;
+            cout << "NOMBRE NODO UPDATE:" << name_node << endl;
             int n = name_node.length();
             char val[n + 1];
             strcpy(val, name_node.c_str());
@@ -265,16 +265,33 @@ void reading(int sock, int n_repos, struct sockaddr_in server_addr)
             }
 
             //int res = hashFunction(string_int(obtener_name_node(structure)), repositories.size());
-            structure = id_client+structure;
-            cout<<"(C->M)UPDATE:"<<structure<<endl;
+            structure = id_client + structure;
+            cout << "(C->M)UPDATE: " << structure << endl;
             n = sendto(sock, structure.c_str(), BUFFER, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
             id_client.clear();
         }
         if (recv_data[0] == 'b')
         {
+             id_client = storeClientAddress();
             string structure(recv_data, BUFFER);
-            cout << structure << endl;
-            int res = hashFunction(string_int(obtener_name_node(structure)), repositories.size());
+           
+            cout << "(C->M)DELETE: " << structure << endl;
+            string name_node = obtener_name_node(structure);
+            cout << "NOMBRE NODO DELETE:" << name_node << endl;
+            int n = name_node.length();
+            char val[n + 1];
+            strcpy(val, name_node.c_str());
+            int res;
+            if (isalpha(val[0]))
+            {
+                res = name_node[0] % (repositories.size());
+            }
+            else
+            {
+                // funcion original
+                res = hashFunction(string_int(name_node), repositories.size());
+            }
+            structure = id_client + structure;
             n = sendto(sock, structure.c_str(), BUFFER, 0, (struct sockaddr *)&repositories[res], sizeof(struct sockaddr));
             id_client.clear();
         }

@@ -184,7 +184,7 @@ void writing(int sock)
                 }
                 structure = int_to_string(t, 2) + attributes;
             }
-            structure = string(1, action) + int_to_string(name.size(), 3) + name + int_to_string(new_name.size(), 3) + new_name + structure+"$";
+            structure = string(1, action) + int_to_string(name.size(), 3) + name + int_to_string(new_name.size(), 3) + new_name + structure + "$";
             cout << structure << endl;
             string str;
             str.assign(BUFFER - structure.size() - 1, '0');
@@ -224,8 +224,11 @@ void writing(int sock)
                 }
                 structure = int_to_string(number_attributes, 2) + int_to_string(number_relations, 2) + attributes + relations;
             }
-            structure = string(1, action) + int_to_string(name_node.size(), 3) + name_node + structure+"$"; //
+            structure = string(1, action) + int_to_string(name_node.size(), 3) + name_node + structure + "$"; //
             cout << structure << endl;
+            string str;
+            str.assign(BUFFER - structure.size() - 1, '0');
+            structure += str;
             n = sendto(sock, structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
             break;
         }

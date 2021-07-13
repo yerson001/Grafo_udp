@@ -542,13 +542,13 @@ void writing(int sock, string name_db, string servidor)
         }
         if(s[0]=='u'){
             string update_ = s;
-            cout<<"UPDATE: "<<update_<<endl;
+            cout<<"(M->R)UPDATE: "<<update_<<endl;
             //update(update_);
             id_client.clear();
         }
         if(s[0]=='b'){
-            cout<<"DELETE: "<<s<<endl;
-            delete_(s);
+            cout<<"(M->R)DELETE: "<<s<<endl;
+            //delete_(s);
             id_client.clear();
         }
         //n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
