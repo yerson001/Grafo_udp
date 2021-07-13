@@ -41,19 +41,22 @@ $ master  repositorio  client  main
 $>> ./master
 ~~~
 
-2 Ejecute un repositorio1 -> envíele la base de datos repo0.db
+2 Ejecute un repositorio1 -> envíele la base de datos repo0.db  y el puesto del mater (LOCAL use:127.0.0.1)
 ~~~
-$>> ./repositorio repo0
+si se ejecuta localmente
+$>> ./repositorio repo0 127.0.0.1
 ~~~
 
 2.1 Ejecute un repositorio2 -> envíele la base de datos repo1.db
 ~~~
-$>> ./repositorio repo1
+si se ejecuta localmente
+$>> ./repositorio repo1 127.0.0.1
 ~~~
 
 2.2 Ejecute un repositorio3 -> envíele la base de datos repo2.db
 ~~~
-$>> ./repositorio repo2
+si se ejecuta localmente
+$>> ./repositorio repo2 127.0.0.1
 ~~~
 Puede Crear cuantos repositorios requiera
 
