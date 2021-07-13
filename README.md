@@ -71,4 +71,4 @@ Puede crear varios clientes
 ## Prueba en Google-Cloud
 ![test para la cola](img/cloud.png)
 ## Diagrama
-![test para la cola](img/Selección_051.png.png)
+![test para la cola](img/Selección_059.png)
