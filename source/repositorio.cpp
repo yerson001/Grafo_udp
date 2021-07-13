@@ -21,6 +21,7 @@
 #include <map>
 using namespace std;
 struct sockaddr_in server_addr;
+struct sockaddr_in server_addr_r;
 struct hostent *host;
 vector<string> nombre_atributos;
 vector<string> valor_atributos;
@@ -235,7 +236,7 @@ void read(string &structure, string name_db)
     }
     inserciones(nombre_nodo, number_attributes, number_relations, name_db);
 }
-void writing(int sock, string name_db)
+void writing(int sock, string name_db,string servidor)
 {
     SQlite db(name_db);
     int n, write_sise;
@@ -275,8 +276,8 @@ void writing(int sock, string name_db)
         // Store the id_client
         string id_client(send_data, 1);
         string s(send_data, BUFFER);
-        cout << "server-->client[completo]: " << s << endl;
-        cout << "ID_CLIENTE: " << id_client << endl;
+        cout << "SERVER-->CLIENT[completo]: " << s << endl;
+        cout << "ID_CLIENTE NEW: " << id_client << endl;
         //eliminar id_cliente pa el identificador
         s.erase(0, 1);
         cout << "server-->client[elinando]: " << s << endl;
@@ -355,7 +356,7 @@ void writing(int sock, string name_db)
                         string todos_rel = db.select_dep("relaciones", los_niveles[it]);
                         respuesta_repo = todos_rel;
                         todos_rel.clear();
-                    }// buscamos el nodo en otro repositorio
+                    } // buscamos el nodo en otro repositorio
                     if (res != num_repo(name_db))
                     {
                         string str;
@@ -390,13 +391,13 @@ void writing(int sock, string name_db)
                                 respuesta += " |" + data[i] + "| ->";
                             }
                         }
-                        cout << "[RESPUESTA:" << respuesta <<"]"<< endl;
+                        cout << "[RESPUESTA:" << respuesta << "]" << endl;
                         data.clear();
                     }
                     else
                     {
-                        cout << "[RESPUESTA CHEKA:" << respuesta <<"]"<< endl;
-                        respuesta += cortar(respuesta_repo); 
+                        cout << "[RESPUESTA CHEKA:" << respuesta << "]" << endl;
+                        respuesta += cortar(respuesta_repo);
                         vector<string> data = get_value_dep(respuesta_repo, los_niveles[it]);
                         for (int i = 0; i < data.size(); i++)
                         {
@@ -406,12 +407,13 @@ void writing(int sock, string name_db)
                                 respuesta += " |" + data[i] + "| ->";
                             }
                         }
-                        cout << "[RESPUESTA:" << respuesta <<"]"<< endl;
+                        //cout << "[RESPUESTA FINAL:" << final_respuesta << "]" << endl;
                         data.clear();
                     }
 
                     actual_temp.clear();
                 }
+                //respuesta = final_respuesta;
             }
             /*vector<string> final;
             for(int i=0; i<los_niveles.size(); i++){
@@ -419,12 +421,27 @@ void writing(int sock, string name_db)
             }*/
 
             //string respuesta = db.select_dep("relaciones", nodo, dep);
-            cout << "[RESPUESTA:" << respuesta <<"]"<< endl;
+            cout << "[RESPUESTA_END:" << respuesta << "]" << endl;
             respuesta = "d" + id_client + respuesta;
             cout << "SELECT->DEP: (R->M) " << respuesta << endl;
+
+            //***************************
+            int sock;
+            host = (struct hostent *)gethostbyname((char *)servidor.c_str());
+            //host = (struct hostent *)gethostbyname((char *)"34.152.23.49");
+            if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+            {
+                perror("socket");
+                exit(1);
+            }
+            server_addr_r.sin_family = AF_INET;
+            server_addr_r.sin_port = htons(5000);
+            server_addr_r.sin_addr = *((struct in_addr *)host->h_addr);
+            bzero(&(server_addr.sin_zero), 8);
+            //****************************
             if (respuesta.size() != 0)
             {
-                n = sendto(sock, respuesta.c_str(), respuesta.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
+                n = sendto(sock, respuesta.c_str(), respuesta.size(), 0, (struct sockaddr *)&server_addr_r, sizeof(struct sockaddr));
             }
 
             respuesta.clear();
@@ -436,7 +453,7 @@ void writing(int sock, string name_db)
             s.erase(0, 1);
             cout << "R->R: " << s << endl;
             string nodo = s;
-            string respuesta;
+            string respuesta_repositorio;
             int dep = get_value_dep(nodo);
             //separamos el nombre y la prufundidad
             cout << "NODO: " << nodo << "-->" << dep << endl;
@@ -447,14 +464,14 @@ void writing(int sock, string name_db)
             //vector<string> los_niveles = get_value_dep(todos_relaciones, nodo);
             cout << "(R->R)NUMERO DE REPOSITORIOS: " << repositories.size() << endl;
             cout << "(R->R) ALL_reques: " << todos_relaciones << endl;
-            respuesta = todos_relaciones + "$";
+            respuesta_repositorio = todos_relaciones + "$";
 
             string str;
-            str.assign(BUFFER - respuesta.size() - 1, '0');
-            respuesta = respuesta + str;
+            str.assign(BUFFER - respuesta_repositorio.size() - 1, '0');
+            respuesta_repositorio = respuesta_repositorio + str;
 
-            n = sendto(sock, respuesta.c_str(), respuesta.size(), 0, (struct sockaddr *)&repositories[string_int(id_client)], sizeof(struct sockaddr));
-            respuesta.clear();
+            n = sendto(sock, respuesta_repositorio.c_str(), respuesta_repositorio.size(), 0, (struct sockaddr *)&repositories[string_int(id_client)], sizeof(struct sockaddr));
+            respuesta_repositorio.clear();
             id_client.clear();
         }
         //n = sendto(sock,structure.c_str(), structure.size(), 0, (struct sockaddr *)&server_addr, sizeof(struct sockaddr));
@@ -465,9 +482,11 @@ void writing(int sock, string name_db)
 
 int main(int argc, char *argv[])
 {
-
+    string name_db = argv[1];
+    string ip = argv[2];
     int sock;
-    host = (struct hostent *)gethostbyname((char *)"127.0.0.1");
+    //host = (struct hostent *)gethostbyname((char *)"127.0.0.1");
+    host = (struct hostent *)gethostbyname((char *)ip.c_str());
     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
     {
         perror("socket");
@@ -478,9 +497,9 @@ int main(int argc, char *argv[])
     server_addr.sin_port = htons(5000);
     server_addr.sin_addr = *((struct in_addr *)host->h_addr);
     bzero(&(server_addr.sin_zero), 8);
-    string name_db = argv[1];
+
     name_db = name_db + ".db";
     printf("REPOSITORIO [%s : %hd]\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
     cout << "NAME DB: " << name_db << endl;
-    writing(sock, name_db);
+    writing(sock, name_db,ip);
 }

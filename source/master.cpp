@@ -96,7 +96,7 @@ string get_value(string name)
     return name;
 }
 
-void reading(int sock, int n_repos)
+void reading(int sock, int n_repos, struct sockaddr_in server_addr)
 {
     char recv_data[BUFFER];
     int n, rc, number_repo = 0;
@@ -113,13 +113,7 @@ void reading(int sock, int n_repos)
         }
 
         if (recv_data[0] == 'R' && number_repo < n_repos)
-        { /*
-            for (int i = 0; i < repositories.size(); i++)
-            {
-                if (repositories[i].sin_port != client_addr.sin_port)
-                    repositories.push_back(client_addr);
-            }
-            if (repositories.size() == 0)*/
+        {
             repositories.push_back(client_addr);
             cout << "repositorio registrado " << endl;
             //printf("[%i] [%s : %hd]\n", repositories.size(), inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
@@ -138,6 +132,11 @@ void reading(int sock, int n_repos)
                     send_struct.to_send[i] = repositories[i];
                     bzero(&(send_struct.to_send[i].sin_zero), 8);
                 }
+/*
+                send_struct.mydouble = number_repo;
+                send_struct.to_send[number_repo+1] = server_addr;
+                bzero(&(send_struct.to_send[number_repo+1].sin_zero), 8);
+*/
                 // enviamos la estrucutra a todos los reposritorios
                 for (int i = 0; i < number_repo; i++)
                 {
@@ -247,7 +246,7 @@ int main()
 
     printf("[%s] [%s : %hd]\n", "Master: ", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
     //reading(sock);
-    thread(reading, sock, 3).detach();
+    thread(reading, sock, 3, server_addr).detach();
     for (;;)
     {
     }
