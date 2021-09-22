@@ -73,4 +73,4 @@ Puede crear varios clientes
 ## Prueba en Google-Cloud
 ![test para la cola](img/cloud.png)
 
-![DEMO_VIDEO](https://www.youtube.com/watch?v=csgtAlKNKyY&t=299s)
+[DEMO_VIDEO](https://www.youtube.com/watch?v=csgtAlKNKyY&t=299s)
